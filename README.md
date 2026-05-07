@@ -100,6 +100,17 @@ dotnet add package Azure.Identity
 - **[Migration from Semantic Kernel](https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-semantic-kernel)** - Guide to migrate from Semantic Kernel
 - **[Migration from AutoGen](https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen)** - Guide to migrate from AutoGen
 
+#### Open-Source Agent Frameworks &mdash; Deep Dive &amp; Interview Prep
+
+A senior architect's research note comparing Microsoft Agent Framework with AutoGen, Semantic Kernel, LangGraph, CrewAI, OpenAI Agents SDK, LlamaIndex, Haystack, AutoGPT, Pydantic AI, Smolagents, Letta, MetaGPT and Google ADK &mdash; with mermaid architecture diagrams, comparison matrix, decision tree, learning path, and an interview-prep Q&amp;A.
+
+- **GitHub Pages site** (after enabling Pages from `/docs` &mdash; see below): <https://srikanthvelpuri.github.io/agent-framework/research/site/>
+- **Markdown report:** [`docs/research/open-source-agent-frameworks.md`](./docs/research/open-source-agent-frameworks.md)
+- **Static HTML (self-contained, also works locally):** [`docs/research/site/index.html`](./docs/research/site/index.html)
+- **Mermaid diagram sources:** [`docs/research/diagrams/`](./docs/research/diagrams/)
+
+> **To enable the GitHub Pages site:** in your fork, go to `Settings → Pages`, set *Source* to `Deploy from a branch`, *Branch* to `main` (or your working branch), and *Folder* to `/docs`. The page will be served at `https://<your-user>.github.io/agent-framework/research/site/`.
+
 ### Quickstart
 
 #### Basic Agent - Python

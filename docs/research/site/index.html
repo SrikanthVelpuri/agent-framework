@@ -1,0 +1,1273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="description" content="Senior architect's deep-dive on open-source agent frameworks: Microsoft AutoGen, Microsoft Agent Framework, Semantic Kernel, LangGraph, CrewAI, OpenAI Agents SDK, LlamaIndex, Haystack, AutoGPT, and more. Includes interview prep." />
+<title>Open-Source Agent Frameworks &middot; Deep Dive &amp; Interview Prep</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230b5fff'/%3E%3Ctext x='50%25' y='58%25' font-size='34' text-anchor='middle' fill='white' font-family='Segoe UI, Arial' font-weight='700'%3EAF%3C/text%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg-elev: #11141b;
+    --bg-elev-2: #161a23;
+    --fg: #e6e8ee;
+    --fg-dim: #aab1bf;
+    --fg-mute: #7a8290;
+    --accent: #6aa6ff;
+    --accent-2: #8fd3a0;
+    --warn: #ffb35a;
+    --danger: #ff7a7a;
+    --border: #232838;
+    --code-bg: #0f1219;
+    --link: #87b6ff;
+    --shadow: 0 8px 32px rgba(0,0,0,.35);
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #fafbfc;
+      --bg-elev: #ffffff;
+      --bg-elev-2: #f3f5f9;
+      --fg: #1a1d23;
+      --fg-dim: #4b5260;
+      --fg-mute: #6c7382;
+      --accent: #0b5fff;
+      --accent-2: #2a8a48;
+      --border: #e2e6ee;
+      --code-bg: #f3f5f9;
+      --link: #0b5fff;
+      --shadow: 0 4px 14px rgba(20,30,60,.08);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  code { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: .92em; }
+  pre {
+    background: var(--code-bg);
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    border: 1px solid var(--border);
+  }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
+  blockquote {
+    border-left: 3px solid var(--accent);
+    color: var(--fg-dim);
+    margin: 16px 0;
+    padding: 4px 14px;
+    background: var(--bg-elev);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 18px 0; font-size: .92em; }
+  th, td { padding: 8px 10px; border: 1px solid var(--border); vertical-align: top; text-align: left; }
+  th { background: var(--bg-elev-2); font-weight: 600; }
+  tbody tr:nth-child(odd) { background: var(--bg-elev); }
+
+  /* layout */
+  .site {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+  aside.toc {
+    border-right: 1px solid var(--border);
+    background: var(--bg-elev);
+    padding: 22px 18px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  aside.toc .brand {
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: .2px;
+    margin-bottom: 4px;
+    color: var(--fg);
+  }
+  aside.toc .brand small {
+    display: block;
+    color: var(--fg-mute);
+    font-weight: 400;
+    font-size: .82em;
+    margin-top: 2px;
+  }
+  aside.toc nav { margin-top: 16px; }
+  aside.toc nav a {
+    display: block;
+    padding: 5px 10px;
+    border-radius: 6px;
+    color: var(--fg-dim);
+    font-size: .92em;
+    border-left: 2px solid transparent;
+  }
+  aside.toc nav a:hover { background: var(--bg-elev-2); color: var(--fg); text-decoration: none; }
+  aside.toc nav a.active { color: var(--fg); background: var(--bg-elev-2); border-left-color: var(--accent); }
+  aside.toc nav .group {
+    color: var(--fg-mute);
+    font-size: .72em;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin: 14px 10px 4px;
+  }
+  aside.toc nav .sub { padding-left: 20px; font-size: .88em; }
+
+  main {
+    padding: 36px 44px 80px;
+    max-width: 1080px;
+    width: 100%;
+  }
+  h1, h2, h3, h4 { line-height: 1.25; }
+  h1 { font-size: 2.0rem; margin: 4px 0 8px; }
+  h2 { font-size: 1.5rem; margin: 36px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1.18rem; margin: 24px 0 8px; color: var(--fg); }
+  h4 { font-size: 1.02rem; margin: 18px 0 6px; color: var(--fg-dim); }
+  .lede { color: var(--fg-dim); font-size: 1.05em; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: .72em;
+    background: var(--bg-elev-2);
+    color: var(--fg-dim);
+    border: 1px solid var(--border);
+    margin-right: 4px;
+  }
+  .badge.green { color: var(--accent-2); border-color: var(--accent-2); }
+  .badge.blue { color: var(--accent); border-color: var(--accent); }
+  .badge.warn { color: var(--warn); border-color: var(--warn); }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .card h4 { margin: 0 0 4px; color: var(--fg); }
+  .card p { margin: 4px 0; color: var(--fg-dim); font-size: .92em; }
+
+  details.qa {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin: 10px 0;
+  }
+  details.qa[open] { background: var(--bg-elev-2); }
+  details.qa > summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--fg);
+    list-style: none;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  details.qa > summary::-webkit-details-marker { display: none; }
+  details.qa > summary::before {
+    content: "▸";
+    color: var(--accent);
+    transition: transform .15s ease;
+    width: 1ch;
+  }
+  details.qa[open] > summary::before { transform: rotate(90deg); }
+  details.qa .answer { margin-top: 10px; color: var(--fg-dim); }
+  details.qa .answer p { margin: 8px 0; }
+
+  .mermaid {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin: 14px 0;
+    text-align: center;
+    overflow-x: auto;
+  }
+
+  .anchor { color: var(--fg-mute); margin-left: 8px; opacity: 0; transition: opacity .15s; font-size: .8em; }
+  h2:hover .anchor, h3:hover .anchor { opacity: 1; }
+
+  .topbar {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    align-items: center;
+    gap: 10px;
+  }
+  .topbar button {
+    background: var(--bg-elev-2);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .topbar .title { font-weight: 600; }
+
+  @media (max-width: 980px) {
+    .site { grid-template-columns: 1fr; }
+    .topbar { display: flex; }
+    aside.toc {
+      position: fixed;
+      inset: 56px 0 0 0;
+      height: calc(100vh - 56px);
+      width: 100%;
+      transform: translateX(-100%);
+      transition: transform .2s ease;
+      z-index: 10;
+    }
+    aside.toc.open { transform: translateX(0); }
+    main { padding: 20px 18px 60px; }
+  }
+
+  ul.compact, ol.compact { margin: 6px 0 12px 22px; }
+  ul.compact li, ol.compact li { margin: 3px 0; }
+
+  .pillbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button id="toggleToc" aria-label="Toggle table of contents">☰</button>
+  <span class="title">Agent Frameworks Deep Dive</span>
+</div>
+
+<div class="site">
+  <aside class="toc" id="toc">
+    <div class="brand">
+      Open-Source Agent Frameworks
+      <small>Deep dive &middot; comparison &middot; interview prep</small>
+    </div>
+    <nav>
+      <div class="group">Overview</div>
+      <a href="#intro">Introduction</a>
+      <a href="#summary-table">Summary table</a>
+
+      <div class="group">Frameworks</div>
+      <a href="#fw-autogen">Microsoft AutoGen</a>
+      <a href="#fw-maf">Microsoft Agent Framework</a>
+      <a href="#fw-sk">Semantic Kernel</a>
+      <a href="#fw-langgraph">LangGraph</a>
+      <a href="#fw-crewai">CrewAI</a>
+      <a href="#fw-openai">OpenAI Agents SDK</a>
+      <a href="#fw-llamaindex">LlamaIndex AgentWorkflow</a>
+      <a href="#fw-haystack">Haystack Agents</a>
+      <a href="#fw-autogpt">AutoGPT / Forge</a>
+      <a href="#fw-others">Other frameworks</a>
+
+      <div class="group">Architecture diagrams</div>
+      <a href="#diag-maf">MAF</a>
+      <a href="#diag-autogen">AutoGen</a>
+      <a href="#diag-langgraph">LangGraph</a>
+      <a href="#diag-crewai">CrewAI</a>
+      <a href="#diag-openai">OpenAI SDK</a>
+      <a href="#diag-llamaindex">LlamaIndex</a>
+      <a href="#diag-haystack">Haystack</a>
+
+      <div class="group">Decisions</div>
+      <a href="#matrix">Comparison matrix</a>
+      <a href="#quadrant">Orchestration quadrant</a>
+      <a href="#decision-tree">Decision tree</a>
+      <a href="#use-cases">Use-case picks</a>
+      <a href="#learning-path">Learning path</a>
+
+      <div class="group">Interview prep</div>
+      <a href="#prep-conceptual">Conceptual</a>
+      <a href="#prep-architecture">Architecture &amp; design</a>
+      <a href="#prep-multiagent">Multi-agent patterns</a>
+      <a href="#prep-tools">Tools &amp; memory</a>
+      <a href="#prep-production">Production concerns</a>
+      <a href="#prep-maf">MAF deep dive</a>
+      <a href="#prep-systemdesign">System design</a>
+
+      <div class="group">References</div>
+      <a href="#links">Curated links</a>
+    </nav>
+  </aside>
+
+  <main>
+
+    <h1 id="intro">Open-Source Agent Frameworks <span class="badge blue">May&nbsp;2026</span></h1>
+    <p class="lede">A senior platform-architect's deep dive into the major open-source agent frameworks &mdash; with extra weight on <strong>Microsoft AutoGen</strong> and <strong>Microsoft Agent Framework (MAF)</strong> &mdash; plus interview-style Q&amp;A you can use to level-up before a technical screen.</p>
+
+    <div class="pillbar">
+      <span class="badge">Architecture</span>
+      <span class="badge">Multi-agent orchestration</span>
+      <span class="badge">Workflows</span>
+      <span class="badge">HITL</span>
+      <span class="badge">Observability</span>
+      <span class="badge">Evaluation</span>
+      <span class="badge">Deployment</span>
+    </div>
+
+    <p>This page mirrors the markdown research note in
+      <a href="../open-source-agent-frameworks.md"><code>docs/research/open-source-agent-frameworks.md</code></a>
+      and adds a dedicated <em>interview prep</em> section. The mermaid diagrams render directly below;
+      the source <code>.mmd</code> files live in
+      <a href="../diagrams/"><code>docs/research/diagrams/</code></a>.</p>
+
+    <hr />
+
+    <!-- =========================== SUMMARY ============================ -->
+    <h2 id="summary-table">1. Summary table <a class="anchor" href="#summary-table">#</a></h2>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Framework</th><th>Owner</th><th>Languages</th><th>Primary abstraction</th>
+          <th>Multi-agent style</th><th>Workflow engine</th><th>HITL</th><th>Observability</th>
+          <th>Maturity</th><th>License</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Microsoft AutoGen</strong></td><td>Microsoft Research</td><td>Python (.NET-light)</td><td>Conversable agents + actor Core</td><td>GroupChat, Swarm, Magentic, custom</td><td>AgentChat / Core actors</td><td>Yes (UserProxyAgent, approvals)</td><td>OpenTelemetry, AutoGen Studio</td><td>Mature; 0.4.x stable; succeeded by MAF</td><td>MIT</td></tr>
+        <tr><td>2</td><td><strong>Microsoft Agent Framework (MAF)</strong></td><td>Microsoft (Foundry)</td><td>Python + .NET</td><td><code>AIAgent</code> + graph <code>Workflow</code></td><td>Sequential / concurrent / handoff / group / Magentic</td><td>First-class graph workflows w/ checkpoint, time-travel</td><td>Native <code>RequestInfo</code> + approvals</td><td>OpenTelemetry, DevUI</td><td><strong>GA 1.0 (Apr&nbsp;2026)</strong>, LTS</td><td>MIT</td></tr>
+        <tr><td>3</td><td><strong>Semantic Kernel</strong></td><td>Microsoft DevDiv</td><td>C#, Python, Java</td><td><code>Kernel</code> + plugins / planners</td><td>Agent + Process Framework</td><td>Process Framework (state machine)</td><td>Yes (filters, hooks)</td><td>OpenTelemetry</td><td>Mature; converging into MAF</td><td>MIT</td></tr>
+        <tr><td>4</td><td><strong>LangGraph</strong></td><td>LangChain Inc.</td><td>Python + JS/TS</td><td>StateGraph (nodes/edges, reducers)</td><td>Supervisor / swarm / hierarchical</td><td>Graph + persistence + interrupts</td><td>First-class <code>interrupt()</code></td><td>LangSmith</td><td>Mature; de-facto OSS standard</td><td>MIT</td></tr>
+        <tr><td>5</td><td><strong>CrewAI</strong></td><td>CrewAI Inc.</td><td>Python</td><td>Agents, Tasks, Crews + Flows</td><td>Role-based crews</td><td>Flows (event-driven)</td><td>Yes (HumanInput tools)</td><td>Built-in + OpenLIT/Langfuse</td><td>Mature; Crew Enterprise tier</td><td>MIT (core)</td></tr>
+        <tr><td>6</td><td><strong>OpenAI Agents SDK</strong></td><td>OpenAI</td><td>Python + TS</td><td><code>Agent</code> + handoffs + guardrails</td><td>Handoff graph (agents-as-tools)</td><td>Lightweight runner; sessions</td><td>Approvals + interrupts</td><td>Built-in tracing</td><td>Production 1.x</td><td>MIT</td></tr>
+        <tr><td>7</td><td><strong>LlamaIndex AgentWorkflow</strong></td><td>LlamaIndex</td><td>Python + TS</td><td>Event-driven <code>Workflow</code> + <code>AgentWorkflow</code></td><td>Multi-agent over events + Context</td><td>Workflows 1.0 (asyncio events)</td><td><code>wait_for_event</code></td><td>Llama Cloud, OpenInference</td><td>Mature for RAG-heavy agents</td><td>MIT</td></tr>
+        <tr><td>8</td><td><strong>Haystack Agents</strong></td><td>deepset</td><td>Python</td><td><code>Pipeline</code> + <code>Agent</code> component</td><td>Agent + sub-pipelines as tools</td><td>Pipelines (DAG, branches/loops)</td><td>Custom HumanInput tool</td><td>OpenTelemetry, deepset Studio</td><td>Mature 2.x</td><td>Apache 2.0</td></tr>
+        <tr><td>9</td><td><strong>AutoGPT / Forge</strong></td><td>Significant Gravitas</td><td>Python + TS UI</td><td>Block-graph runtime + Forge SDK</td><td>Single autonomous agent w/ blocks</td><td>AutoGPT Platform graph builder</td><td>Manual approval per step</td><td>Platform telemetry</td><td>Niche; product pivot</td><td>Polyform Shield + MIT</td></tr>
+        <tr><td>10a</td><td>Pydantic AI</td><td>Pydantic Team</td><td>Python</td><td>Type-safe <code>Agent</code> + tools</td><td>Agent-as-tool, A2A</td><td>Lightweight</td><td>Approvals</td><td>Logfire</td><td>Fast-rising 1.x</td><td>MIT</td></tr>
+        <tr><td>10b</td><td>Smolagents</td><td>Hugging Face</td><td>Python</td><td>Code-writing agents</td><td>Manager + worker code agents</td><td>None (loop)</td><td>Manual</td><td>HF + OTel</td><td>Lightweight, growing</td><td>Apache 2.0</td></tr>
+        <tr><td>10c</td><td>Letta (ex-MemGPT)</td><td>Letta Labs</td><td>Python + TS</td><td>Stateful agent server with memory</td><td>Multi-agent shared memory</td><td>Letta server</td><td>Yes</td><td>Built-in</td><td>Memory specialist</td><td>Apache 2.0</td></tr>
+        <tr><td>10d</td><td>MetaGPT</td><td>DeepWisdom</td><td>Python</td><td>Role-based "software company"</td><td>SOP-driven role hierarchy</td><td>SOP graph</td><td>Limited</td><td>Custom</td><td>Research-heavy</td><td>MIT</td></tr>
+        <tr><td>10e</td><td>Google ADK</td><td>Google</td><td>Python + Java</td><td><code>LlmAgent</code> + tools + sessions</td><td>Sequential / parallel / loop</td><td>ADK Runner</td><td>Yes</td><td>Vertex + OTel</td><td>New (2025), maturing fast</td><td>Apache 2.0</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <hr />
+
+    <!-- =========================== FRAMEWORKS ============================ -->
+    <h2>2. Detailed framework-by-framework notes</h2>
+
+    <h3 id="fw-autogen">2.1 Microsoft AutoGen <a class="anchor" href="#fw-autogen">#</a></h3>
+    <p><span class="badge blue">Repo</span> <a href="https://github.com/microsoft/autogen">microsoft/autogen</a>
+       &nbsp;·&nbsp; <span class="badge">Docs</span> <a href="https://microsoft.github.io/autogen/stable/">microsoft.github.io/autogen</a>
+       &nbsp;·&nbsp; <span class="badge">License</span> MIT</p>
+    <p><strong>Problem.</strong> AutoGen pioneered the <em>conversable multi-agent</em> pattern: arbitrary teams of LLM-driven agents (and humans) collaborate by messaging each other. It originated as a Microsoft Research project to study how LLM agents could plan, code, critique and self-correct in groups.</p>
+    <p><strong>When to use.</strong> Research on multi-agent collaboration; debate / planner-executor patterns; prototyping novel orchestration (Magentic-One, Swarm, GroupChatManager) before standardising on a production platform; code-heavy agentic tasks where the <strong>CodeExecutor</strong> (Docker / Jupyter) is a first-class citizen.</p>
+    <p><strong>Architecture (since v0.4, Jan&nbsp;2025).</strong> Three-layer:</p>
+    <ol class="compact">
+      <li><code>autogen-core</code> &mdash; async, event-driven actor runtime. Single-process or distributed (gRPC).</li>
+      <li><code>autogen-agentchat</code> &mdash; high-level conversational API: <code>AssistantAgent</code>, <code>UserProxyAgent</code>, <code>RoundRobinGroupChat</code>, <code>SelectorGroupChat</code>, <code>Swarm</code>, <code>MagenticOneGroupChat</code>.</li>
+      <li><code>autogen-ext</code> &mdash; extensions: model clients, code executors (Docker, Jupyter, ACI), tools, web surfers, MCP.</li>
+    </ol>
+    <p>Plus <strong>AutoGen Studio</strong> (low-code UI on AgentChat) and <strong>AutoGen Bench</strong> for evaluation.</p>
+    <p><strong>Lifecycle.</strong> Build &rarr; register with runtime &rarr; start runtime &rarr; publish task &rarr; agents subscribe and respond &rarr; termination condition &rarr; runtime stop. Streaming via async iterators of <code>BaseChatMessage</code>.</p>
+    <p><strong>Tool-calling.</strong> <code>FunctionTool</code> wraps Python callables. MCP tools first-class via <code>mcp_server_tools()</code>. OpenAI-style tool calls; results fed back as <code>ToolCallResultMessage</code>.</p>
+    <p><strong>Memory.</strong> Stateless by default; <code>AssistantAgent</code> keeps a model context (sliding window, buffered, head-and-tail) plus a pluggable <code>Memory</code> provider (Chroma, Mem0, custom). Long-term memory is intentionally an extension point.</p>
+    <p><strong>Multi-agent orchestration.</strong> Headline feature.</p>
+    <ul class="compact">
+      <li><code>RoundRobinGroupChat</code> &mdash; deterministic rotation.</li>
+      <li><code>SelectorGroupChat</code> &mdash; an LLM picks the next speaker.</li>
+      <li><code>Swarm</code> &mdash; agents handoff via tool calls.</li>
+      <li><code>MagenticOneGroupChat</code> &mdash; orchestrator coordinates web/file/code/coder agents.</li>
+      <li>Custom: subclass <code>BaseGroupChat</code> or wire Core actors directly.</li>
+    </ul>
+    <p><strong>Workflow.</strong> Treats orchestration as <em>conversation</em>, not as a DAG &mdash; no first-class graph workflow type (the gap MAF closes).</p>
+    <p><strong>HITL.</strong> <code>UserProxyAgent</code> participates as human; <code>input_func</code> wires CLI/web/Slack inputs.</p>
+    <p><strong>Eval / Observability.</strong> <code>autogen-bench</code> (HumanEval, GAIA, AssistantBench). OpenTelemetry traces and metrics across runtime + AgentChat. AutoGen Studio session viewer.</p>
+    <p><strong>Deployment.</strong> Local Python; distributed runtime over gRPC; Studio is FastAPI. Containerisable but not opinionated.</p>
+    <p><strong>Enterprise.</strong> Mid-tier. OTel + sandboxed code-execution good; durable workflow checkpointing and managed hosting are not first-class &mdash; the exact gap MAF was created to close. Microsoft's official statement: AutoGen continues as a research playground; production users are guided to MAF.</p>
+    <p><strong>Pros.</strong> Best-in-class multi-agent conversation primitives; rich research patterns; strong code-execution; healthy community.<br />
+       <strong>Cons.</strong> API churn (0.2 &rarr; 0.4); no native durable workflow / time-travel; production deployment is DIY; .NET community-only.</p>
+    <p><strong>vs MAF.</strong> AutoGen is the <em>research</em> lineage; MAF is the <em>production</em> lineage with same agent ergonomics plus typed graph workflows, checkpointing, hosting, and .NET parity.</p>
+
+    <h3 id="fw-maf">2.2 Microsoft Agent Framework (MAF) <a class="anchor" href="#fw-maf">#</a></h3>
+    <p><span class="badge blue">Repo</span> <a href="https://github.com/microsoft/agent-framework">microsoft/agent-framework</a>
+       &nbsp;·&nbsp; <span class="badge">Docs</span> <a href="https://learn.microsoft.com/en-us/agent-framework/">learn.microsoft.com/agent-framework</a>
+       &nbsp;·&nbsp; <span class="badge">License</span> MIT</p>
+    <p><strong>Problem.</strong> Unify and productionise the best ideas from AutoGen and Semantic Kernel into a single, multi-language, opinionated framework: ergonomic agents, graph workflows, durable state, observability, governance, and turnkey hosting on Microsoft Foundry &mdash; while staying provider-agnostic.</p>
+    <p><strong>Architecture.</strong></p>
+    <ul class="compact">
+      <li><code>AIAgent</code> &mdash; provider-agnostic chat agent (<code>OpenAIChatClient</code>, <code>AzureOpenAIChatClient</code>, <code>FoundryChatClient</code>, <code>AnthropicChatClient</code>, <code>BedrockChatClient</code>, <code>OllamaChatClient</code>). Backed by Microsoft.Extensions.AI (<code>IChatClient</code>).</li>
+      <li><strong>Tools</strong> &mdash; function tools, MCP, OpenAPI, Foundry-hosted (Bing, file search, code interpreter).</li>
+      <li><strong>Middleware</strong> &mdash; request/response/exception pipelines (telemetry, retries, redaction, security).</li>
+      <li><strong>Workflows</strong> &mdash; typed graph engine (<code>Workflow</code>, <code>Executor</code>, <code>Edge</code>, <code>WorkflowBuilder</code>): sequential, concurrent, handoff, group chat, Magentic, custom; streaming events; <strong>checkpointing</strong>, <strong>resume</strong>, <strong>time-travel</strong>, sub-workflows.</li>
+      <li><strong>Memory</strong> &mdash; <code>IMemory</code> providers (Foundry, Redis, custom); thread-scoped <code>AgentThread</code>.</li>
+      <li><strong>Skills</strong> &mdash; domain knowledge bundles.</li>
+      <li><strong>Hosting</strong> &mdash; local; ASP.NET Core; FastAPI; <strong>Foundry-hosted agents</strong> (deploy with two extra lines); Agent Harness for shell/file/messaging loops.</li>
+      <li><strong>DevUI</strong> &mdash; browser debugger that visualises message flow, tool calls, state, and workflow graphs.</li>
+      <li><strong>Adapters</strong> &mdash; AG-UI, CopilotKit, ChatKit.</li>
+    </ul>
+    <p><strong>Lifecycle.</strong> Create chat client &rarr; build <code>AIAgent</code> (instructions, tools, memory) &rarr; optional middleware &rarr; invoke (streaming or not) &rarr; <code>AgentThread</code> carries state &rarr; optional checkpoint &rarr; optional rehydration / handoff to workflow.</p>
+    <p><strong>HITL.</strong> First-class <code>RequestInfoExecutor</code> pauses workflow and emits a <code>RequestInfo</code> event; host returns <code>RespondInfo</code> to resume. Tool-call approval flows; UI adapters.</p>
+    <p><strong>Observability.</strong> Native OpenTelemetry &mdash; spans for agent run, model call, tool call, executor, workflow event. Drop-in for App Insights, Jaeger, Honeycomb, Langfuse, Phoenix. DevUI consumes the same OTel feed locally.</p>
+    <p><strong>Eval.</strong> Preview workflow-level evaluators (regression, golden-set, LLM-as-judge), <code>agent-framework-lab</code>, Foundry Evaluations integration.</p>
+    <p><strong>Maturity.</strong> GA 1.0 since April&nbsp;2026 with LTS commitment for core building blocks (agents, workflows, memory, middleware, orchestration). DevUI, evaluations, Foundry-hosted agents and front-end adapters remain in preview.</p>
+    <p><strong>Pros.</strong> True .NET + Python parity; graph workflows with durability/checkpointing/time-travel/HITL; provider-agnostic; DevUI; clean OTel.<br />
+       <strong>Cons.</strong> Younger community; some preview features still moving; steeper than CrewAI for newcomers.</p>
+
+    <h3 id="fw-sk">2.3 Semantic Kernel <a class="anchor" href="#fw-sk">#</a></h3>
+    <p><span class="badge blue">Repo</span> <a href="https://github.com/microsoft/semantic-kernel">microsoft/semantic-kernel</a>
+       &nbsp;·&nbsp; <span class="badge">Docs</span> <a href="https://learn.microsoft.com/en-us/semantic-kernel/">learn.microsoft.com/semantic-kernel</a></p>
+    <p><strong>Problem.</strong> Microsoft's first-generation "AI orchestration SDK": LLM functions as plugins inside a <code>Kernel</code>, planners and chat-completion agents that fit into existing C# / Python / Java apps.</p>
+    <p><strong>Highlights.</strong> Plugins / connectors / filters; <em>Process Framework</em> (state-machine workflows); <em>Agent Framework</em> in SK is the lineage that became MAF.</p>
+    <p><strong>Status.</strong> Mature; in <strong>convergence mode</strong>. SK as a Kernel/plugin SDK remains supported; agent-specific APIs are guided to MAF. New projects should start on MAF unless tied to SK Process Framework.</p>
+
+    <h3 id="fw-langgraph">2.4 LangGraph <a class="anchor" href="#fw-langgraph">#</a></h3>
+    <p><span class="badge blue">Repo</span> <a href="https://github.com/langchain-ai/langgraph">langchain-ai/langgraph</a>
+       &nbsp;·&nbsp; <span class="badge">Docs</span> <a href="https://docs.langchain.com/oss/python/langgraph">docs.langchain.com/oss/python/langgraph</a></p>
+    <p><strong>Problem.</strong> Bring graph + state-machine discipline to LLM control flow: explicit nodes, edges, reducers, persistence and interrupts.</p>
+    <p><strong>Architecture.</strong> <code>StateGraph</code> with TypedDict state and reducers; nodes are sync/async Python functions; conditional edges; pluggable <em>Checkpointer</em> (<code>MemorySaver</code>, <code>SqliteSaver</code>, <code>PostgresSaver</code>, AWS Bedrock Sessions); <code>interrupt()</code> + <code>Command(resume=…)</code> for HITL; LangSmith for tracing/eval; LangGraph Studio for visualisation; LangGraph Platform for managed runtime.</p>
+    <p><strong>Multi-agent.</strong> <code>langgraph-supervisor</code>, <code>langgraph-swarm</code>; hierarchical and network patterns.</p>
+    <p><strong>Pros.</strong> Graph + persistence is the right abstraction; HITL and time-travel are native; LangSmith.<br />
+       <strong>Cons.</strong> Best inside LangChain ecosystem; reducer schema feels heavy at first.</p>
+    <p><strong>vs MAF.</strong> Closest peer. MAF wins on .NET parity, Foundry hosting, declarative agents and Microsoft ecosystem; LangGraph wins on community size and LangSmith.</p>
+
+    <h3 id="fw-crewai">2.5 CrewAI <a class="anchor" href="#fw-crewai">#</a></h3>
+    <p><span class="badge blue">Repo</span> <a href="https://github.com/crewAIInc/crewAI">crewAIInc/crewAI</a>
+       &nbsp;·&nbsp; <span class="badge">Docs</span> <a href="https://docs.crewai.com/">docs.crewai.com</a></p>
+    <p><strong>Problem.</strong> Multi-agent collaboration that feels like staffing a team: Roles, Goals, Tasks and Crews, plus <em>Flows</em> for event-driven production pipelines.</p>
+    <p><strong>Lifecycle.</strong> Define roles &rarr; instantiate crew &rarr; <code>crew.kickoff(inputs)</code> &rarr; tasks run sequentially or via manager &rarr; outputs flow &rarr; optional Flow handles broader pipeline.</p>
+    <p><strong>Pros.</strong> Lowest friction for role-based multi-agent; great for business teams; Flows give production-ish layer.<br />
+       <strong>Cons.</strong> Less control over LLM cost/latency; emergent failure modes.</p>
+
+    <h3 id="fw-openai">2.6 OpenAI Agents SDK <a class="anchor" href="#fw-openai">#</a></h3>
+    <p><span class="badge blue">Repo</span> <a href="https://github.com/openai/openai-agents-python">openai-agents-python</a> /
+       <a href="https://github.com/openai/openai-agents-js">openai-agents-js</a></p>
+    <p><strong>Architecture.</strong> Pure Python (and TS): <code>Agent(name, instructions, tools, handoffs, guardrails)</code>; Runner loop drives turns; Sessions hold thread state; Handoffs are tools the LLM emits; Guardrails run async checks in parallel; tracing exports to OpenAI dashboard or any OTel/Logfire/Langfuse exporter.</p>
+    <p><strong>Pros.</strong> Minimal, ergonomic, great handoffs/guardrails/tracing; provider-agnostic; TS parity.<br />
+       <strong>Cons.</strong> No graph workflow; no durable runtime; hosted tracing is OpenAI by default.</p>
+
+    <h3 id="fw-llamaindex">2.7 LlamaIndex Workflows / AgentWorkflow <a class="anchor" href="#fw-llamaindex">#</a></h3>
+    <p><span class="badge blue">Repo</span> <a href="https://github.com/run-llama/llama_index">run-llama/llama_index</a></p>
+    <p><strong>Architecture.</strong> Event-driven <code>Workflow</code> with <code>@step</code> handlers reacting to events on a shared <code>Context</code>. <code>AgentWorkflow</code> orchestrates <code>FunctionAgent</code> / <code>ReActAgent</code> with handoffs.</p>
+    <p><strong>Pros.</strong> Best RAG integration of any agent framework; clean event semantics.<br />
+       <strong>Cons.</strong> Smaller multi-agent pattern catalogue; primarily Python.</p>
+
+    <h3 id="fw-haystack">2.8 Haystack Agents <a class="anchor" href="#fw-haystack">#</a></h3>
+    <p><span class="badge blue">Repo</span> <a href="https://github.com/deepset-ai/haystack">deepset-ai/haystack</a>
+       &nbsp;·&nbsp; <span class="badge">License</span> Apache 2.0</p>
+    <p><strong>Architecture.</strong> Typed <code>Components</code> assembled into <code>Pipelines</code> (DAG with branches and loops). <code>Agent</code> is a pipeline component looping a <code>ChatGenerator</code> with a <code>ToolInvoker</code>.</p>
+    <p><strong>Pros.</strong> Type-safe pipelines; great retrieval; Apache 2.0; deepset Studio.<br />
+       <strong>Cons.</strong> Multi-agent abstractions thinner; less "agentic" mindshare.</p>
+
+    <h3 id="fw-autogpt">2.9 AutoGPT / Forge <a class="anchor" href="#fw-autogpt">#</a></h3>
+    <p>The original "give a goal, get an autonomous agent" project pivoted to:</p>
+    <ul class="compact">
+      <li><strong>AutoGPT Platform</strong> &mdash; low-code visual block-graph builder + marketplace + credits + multi-tenant infra. License: Polyform Shield (no commercial redistribution).</li>
+      <li><strong>AutoGPT Classic + Forge</strong> &mdash; original autonomous agent + SDK template. MIT.</li>
+    </ul>
+    <p>Now closer to a <em>product</em> than an embeddable SDK; useful as a low-code platform but not a typical embedded library choice.</p>
+
+    <h3 id="fw-others">2.10 Other notable frameworks <a class="anchor" href="#fw-others">#</a></h3>
+    <div class="cards">
+      <div class="card"><h4>Pydantic AI</h4><p>"FastAPI feel" agents: type-safe <code>Agent[deps, output]</code>, structured outputs via Pydantic, A2A and MCP, DI, Logfire observability.</p></div>
+      <div class="card"><h4>Smolagents (HF)</h4><p>Code-writing agents &mdash; LLM writes Python instead of JSON tool calls. <code>CodeAgent</code> + <code>ToolCallingAgent</code> + <code>ManagedAgent</code>.</p></div>
+      <div class="card"><h4>Letta (ex-MemGPT)</h4><p>Stateful agents with hierarchical memory (core / archival / recall) running as a server. Good for long-term memory across sessions.</p></div>
+      <div class="card"><h4>MetaGPT</h4><p>"Software company" of role-based agents (PM, architect, engineer, QA) producing PRDs, designs and code via SOP-driven hierarchy.</p></div>
+      <div class="card"><h4>Google ADK</h4><p>Python + Java SDK: <code>LlmAgent</code>, <code>SequentialAgent</code>, <code>ParallelAgent</code>, <code>LoopAgent</code>, sessions, callbacks, A2A, Vertex AI integration.</p></div>
+      <div class="card"><h4>Mastra (TS)</h4><p>TypeScript-first agent framework; nice for Node-only shops.</p></div>
+    </div>
+
+    <hr />
+
+    <!-- =========================== DIAGRAMS ============================ -->
+    <h2 id="diagrams">3. Architecture diagrams <a class="anchor" href="#diagrams">#</a></h2>
+    <p>All diagrams are rendered live with Mermaid. Source <code>.mmd</code> files are in
+       <a href="../diagrams/"><code>docs/research/diagrams/</code></a>.</p>
+
+    <h3 id="diag-maf">3.1 Microsoft Agent Framework (MAF) <a class="anchor" href="#diag-maf">#</a></h3>
+    <pre class="mermaid">
+flowchart TB
+    subgraph App["Host application (.NET / Python)"]
+        UI["Front-end adapters<br/>AG-UI · CopilotKit · ChatKit · DevUI"]
+        Host["Host process<br/>ASP.NET Core / FastAPI / Foundry-hosted"]
+    end
+    subgraph Core["MAF Core abstractions"]
+        Agent["AIAgent<br/>ChatAgent · OpenAI / Azure / Foundry / Anthropic / Bedrock / Ollama"]
+        Thread["AgentThread<br/>per-conversation state"]
+        Middleware["Middleware pipeline<br/>telemetry · retries · redaction · security"]
+        Tools["Tools<br/>functions · MCP · OpenAPI · Foundry hosted"]
+        Skills["Skills<br/>domain knowledge bundles"]
+        Memory["Memory providers<br/>Foundry · Redis · IMemory"]
+    end
+    subgraph WF["Workflows"]
+        Builder["WorkflowBuilder"]
+        Executors["Executors (typed nodes)"]
+        Edges["Edges (static / conditional / handoff)"]
+        Patterns["Patterns: Sequential · Concurrent · Handoff · Group · Magentic"]
+        Checkpoint["Checkpointer<br/>durable state · resume · time-travel"]
+        ReqInfo["RequestInfoExecutor<br/>HITL pause / resume"]
+    end
+    subgraph Obs["Observability & Eval"]
+        OTel["OpenTelemetry<br/>spans + metrics"]
+        DevUI["DevUI<br/>local debugger"]
+        Eval["Foundry Evaluations<br/>AF Labs"]
+    end
+    subgraph Deploy["Deployment"]
+        Local["Local dev"]
+        Foundry["Foundry-hosted agents"]
+        Container["Azure Container Apps / AKS"]
+        Harness["Agent Harness<br/>shell / file / messaging"]
+    end
+    UI --> Host --> Agent
+    Agent --> Middleware --> Tools
+    Agent --> Memory
+    Agent --> Skills
+    Agent --> Thread
+    Agent --> WF
+    Builder --> Executors --> Edges --> Patterns
+    Patterns --> Checkpoint
+    Patterns --> ReqInfo
+    ReqInfo --> UI
+    Agent --> OTel
+    WF --> OTel
+    OTel --> DevUI
+    OTel --> Eval
+    Host --> Local
+    Host --> Foundry
+    Host --> Container
+    Host --> Harness
+    </pre>
+
+    <h3 id="diag-autogen">3.2 Microsoft AutoGen v0.4 <a class="anchor" href="#diag-autogen">#</a></h3>
+    <pre class="mermaid">
+flowchart TB
+    subgraph Apps["Apps and tooling"]
+        Studio["AutoGen Studio (low-code UI)"]
+        Bench["AutoGen Bench"]
+        Custom["Custom Python apps"]
+    end
+    subgraph AgentChat["autogen-agentchat"]
+        Assistant["AssistantAgent"]
+        UserProxy["UserProxyAgent"]
+        Round["RoundRobinGroupChat"]
+        Selector["SelectorGroupChat"]
+        Swarm["Swarm"]
+        Magentic["MagenticOneGroupChat"]
+        Termination["Termination conditions"]
+    end
+    subgraph CoreLayer["autogen-core (event-driven actor runtime)"]
+        Runtime["AgentRuntime<br/>single-process or distributed gRPC"]
+        Actor["Agent (actor)"]
+        Messaging["Async messaging<br/>req/resp + pub/sub"]
+        Topics["Topics & subscriptions"]
+    end
+    subgraph Ext["autogen-ext"]
+        Models["Model clients<br/>OpenAI · Azure · Anthropic · Ollama"]
+        CodeExec["Code executors<br/>Docker · Jupyter · ACI"]
+        ToolsExt["Tools<br/>FunctionTool · MCP · web · file"]
+        Memory["Memory providers<br/>Mem0 · Chroma · custom"]
+    end
+    subgraph Obs["Observability"]
+        OTel["OpenTelemetry traces"]
+        Logs["Structured logs"]
+    end
+    Custom --> AgentChat
+    Studio --> AgentChat
+    Bench --> AgentChat
+    AgentChat --> CoreLayer
+    AgentChat --> Ext
+    CoreLayer --> Ext
+    CoreLayer --> OTel
+    AgentChat --> OTel
+    Ext --> Logs
+    </pre>
+
+    <h3 id="diag-langgraph">3.3 LangGraph <a class="anchor" href="#diag-langgraph">#</a></h3>
+    <pre class="mermaid">
+flowchart LR
+    subgraph Build["Build time"]
+        Schema["State schema<br/>TypedDict + reducers"]
+        Nodes["Nodes (Python functions)"]
+        Edges["Edges (static + conditional)"]
+        Compile["StateGraph.compile(checkpointer=…)"]
+    end
+    subgraph Run["Runtime"]
+        Invoke["graph.invoke / stream<br/>(thread_id)"]
+        Step["Per-step execution"]
+        Reducer["Reducer merge"]
+        Interrupt["interrupt() pause"]
+        Resume["Command(resume=…)"]
+    end
+    subgraph Persist["Persistence"]
+        Memo["MemorySaver"]
+        Sqlite["SqliteSaver"]
+        Postgres["PostgresSaver"]
+        Bedrock["AWS Bedrock Sessions"]
+        Store["BaseStore (cross-thread)"]
+    end
+    subgraph Obs["Observability + Eval"]
+        LangSmith["LangSmith"]
+        Studio["LangGraph Studio"]
+    end
+    subgraph Deploy["Deployment"]
+        Self["Self-host"]
+        Platform["LangGraph Platform"]
+    end
+    Schema --> Compile
+    Nodes --> Compile
+    Edges --> Compile
+    Compile --> Invoke --> Step --> Reducer --> Step
+    Step --> Interrupt --> Resume --> Step
+    Step --> Memo
+    Step --> Sqlite
+    Step --> Postgres
+    Step --> Bedrock
+    Step --> Store
+    Step --> LangSmith
+    Compile --> Studio
+    Compile --> Self
+    Compile --> Platform
+    </pre>
+
+    <h3 id="diag-crewai">3.4 CrewAI <a class="anchor" href="#diag-crewai">#</a></h3>
+    <pre class="mermaid">
+flowchart TB
+    subgraph Flows["CrewAI Flows"]
+        Start["@start"]
+        Listen["@listen"]
+        Router["@router"]
+        State["Pydantic state"]
+    end
+    subgraph CrewLayer["Crew"]
+        Process{Process: sequential / hierarchical}
+        Manager["Manager LLM"]
+        AgentA["Agent A<br/>role · goal · backstory"]
+        AgentB["Agent B"]
+        AgentC["Agent C"]
+        TaskA["Task A"]
+        TaskB["Task B"]
+        TaskC["Task C"]
+    end
+    subgraph Tooling["Tools"]
+        BaseTool["BaseTool"]
+        LCTools["LangChain tools"]
+        MCP["MCP"]
+    end
+    subgraph Mem["Memory"]
+        Short["Short-term"]
+        Long["Long-term (mem0)"]
+        Entity["Entity memory"]
+        Cache["Tool cache"]
+    end
+    Start --> Listen --> Router --> CrewLayer
+    Router --> Listen
+    CrewLayer --> Process
+    Process --> Manager
+    Manager --> AgentA & AgentB & AgentC
+    AgentA --> TaskA --> AgentB --> TaskB --> AgentC --> TaskC
+    AgentA --> Tooling
+    AgentB --> Tooling
+    AgentC --> Tooling
+    CrewLayer --> Mem
+    </pre>
+
+    <h3 id="diag-openai">3.5 OpenAI Agents SDK <a class="anchor" href="#diag-openai">#</a></h3>
+    <pre class="mermaid">
+flowchart LR
+    subgraph Build["Build"]
+        Agent["Agent(name, instructions, tools, handoffs, guardrails)"]
+        Tools["@function_tool · hosted tools · MCP · agents-as-tools"]
+        Guard["Guardrails (parallel checks)"]
+        Session["Session"]
+    end
+    subgraph Run["Runner loop"]
+        Model["Model call (Responses API)"]
+        ToolCalls["Tool call execution"]
+        Handoff["Handoff to specialist"]
+        Approval["Approval / interrupt"]
+        Done["Final output"]
+    end
+    subgraph Trace["Tracing"]
+        Spans["Spans: model · tool · handoff · guardrail"]
+        Dash["OpenAI Traces"]
+        Exporters["Logfire · Langfuse · Phoenix · Datadog · OTel"]
+    end
+    Agent --> Run
+    Tools --> Run
+    Guard --> Run
+    Session --> Run
+    Model --> ToolCalls --> Model
+    Model --> Handoff --> Model
+    Model --> Approval --> Model
+    Model --> Done
+    Run --> Spans --> Dash
+    Spans --> Exporters
+    </pre>
+
+    <h3 id="diag-llamaindex">3.6 LlamaIndex AgentWorkflow <a class="anchor" href="#diag-llamaindex">#</a></h3>
+    <pre class="mermaid">
+flowchart TB
+    subgraph WF["Workflow engine (event-driven)"]
+        Step1["@step handler"]
+        Step2["@step handler"]
+        Step3["@step handler"]
+        Ctx["Context (shared state, streaming)"]
+        Events["Events"]
+    end
+    subgraph AW["AgentWorkflow (multi-agent)"]
+        Func["FunctionAgent"]
+        ReAct["ReActAgent"]
+        Handoff["Handoffs between agents"]
+    end
+    subgraph Tools["Tools"]
+        FT["FunctionTool"]
+        QE["QueryEngineTool (RAG)"]
+        MCP["MCP"]
+    end
+    subgraph Mem["Memory"]
+        Buffer["ChatMemoryBuffer"]
+        Vec["Vector stores"]
+        Cloud["Llama Cloud memory"]
+    end
+    Step1 --> Events --> Step2 --> Events --> Step3
+    Step1 --> Ctx
+    Step2 --> Ctx
+    Step3 --> Ctx
+    AW --> WF
+    Func --> Tools
+    ReAct --> Tools
+    Func --> Mem
+    ReAct --> Mem
+    </pre>
+
+    <h3 id="diag-haystack">3.7 Haystack <a class="anchor" href="#diag-haystack">#</a></h3>
+    <pre class="mermaid">
+flowchart LR
+    subgraph Pipeline["Pipeline (DAG with branches & loops)"]
+        Retriever["Retriever"]
+        Reranker["Reranker"]
+        Prompt["PromptBuilder"]
+        Gen["ChatGenerator"]
+        Agent["Agent component<br/>LLM loop + ToolInvoker"]
+        Sub["Sub-pipelines as ComponentTool"]
+    end
+    subgraph ToolLayer["Tools"]
+        Func["@tool functions"]
+        Comp["ComponentTool"]
+        MCP["MCP / OpenAPI tools"]
+    end
+    subgraph Stores["Document & memory stores"]
+        Elastic["Elasticsearch / OpenSearch"]
+        Qdrant["Qdrant / Weaviate / pgvector"]
+        Mongo["MongoDB Atlas"]
+        Memory["Conversation memory"]
+    end
+    Retriever --> Reranker --> Prompt --> Gen --> Agent
+    Agent --> ToolLayer --> Agent
+    Agent --> Sub
+    Retriever --> Stores
+    Memory --> Agent
+    </pre>
+
+    <hr />
+
+    <!-- =========================== MATRIX & DECISIONS ============================ -->
+    <h2 id="matrix">4. Comparison matrix <a class="anchor" href="#matrix">#</a></h2>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th>AutoGen</th><th>MAF</th><th>SK</th><th>LangGraph</th><th>CrewAI</th>
+          <th>OpenAI SDK</th><th>LlamaIndex</th><th>Haystack</th><th>AutoGPT</th>
+          <th>Pydantic</th><th>Smolagents</th><th>Letta</th><th>MetaGPT</th><th>ADK</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Languages</td><td>Py</td><td>Py + .NET</td><td>C#/Py/Java</td><td>Py + TS</td><td>Py</td><td>Py + TS</td><td>Py + TS</td><td>Py</td><td>Py + TS UI</td><td>Py</td><td>Py</td><td>Py + TS</td><td>Py</td><td>Py + Java</td></tr>
+        <tr><td>Multi-agent depth</td><td>Best</td><td>Best</td><td>Mid</td><td>Excellent</td><td>Excellent</td><td>Good</td><td>Good</td><td>Mid</td><td>—</td><td>Mid</td><td>Mid</td><td>Mid</td><td>Strong (SDLC)</td><td>Strong</td></tr>
+        <tr><td>Graph workflow</td><td>No (actors)</td><td><strong>Yes</strong></td><td>Process Fwk</td><td><strong>Yes</strong></td><td>Flows</td><td>No</td><td>Workflows</td><td>Pipelines</td><td>Block graph</td><td>No</td><td>No</td><td>No</td><td>No</td><td>Seq/Par/Loop</td></tr>
+        <tr><td>Durable checkpoints</td><td>Limited</td><td><strong>Yes</strong></td><td>In Process Fwk</td><td><strong>Yes</strong></td><td>Partial</td><td>No</td><td>Partial</td><td>No</td><td>Platform</td><td>No</td><td>No</td><td>Server-side</td><td>No</td><td>Sessions</td></tr>
+        <tr><td>Time-travel</td><td>No</td><td><strong>Yes</strong></td><td>Limited</td><td><strong>Yes</strong></td><td>No</td><td>No</td><td>Limited</td><td>No</td><td>No</td><td>No</td><td>No</td><td>Limited</td><td>No</td><td>No</td></tr>
+        <tr><td>HITL primitives</td><td>UserProxy</td><td>RequestInfo</td><td>Process steps</td><td><code>interrupt()</code></td><td>human_input</td><td>Approvals</td><td>wait_for_event</td><td>DIY tool</td><td>Manual</td><td>Approvals</td><td>Manual</td><td>Yes</td><td>Limited</td><td>Callbacks</td></tr>
+        <tr><td>MCP support</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Limited</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Limited</td><td>Yes</td></tr>
+        <tr><td>OpenTelemetry</td><td>Yes</td><td>Native</td><td>Yes</td><td>Yes (+LangSmith)</td><td>Integrations</td><td>Built-in</td><td>OpenInference</td><td>Yes</td><td>Platform only</td><td>Logfire</td><td>Yes</td><td>Yes</td><td>Limited</td><td>Yes</td></tr>
+        <tr><td>Eval</td><td>autogen-bench</td><td>AF Labs + Foundry</td><td>Foundry Eval</td><td>LangSmith Eval</td><td>crewai-eval</td><td>Hosted + custom</td><td>LI Evals</td><td>haystack-eval</td><td>Platform</td><td>DIY</td><td>DIY</td><td>DIY</td><td>DIY</td><td>Vertex Eval</td></tr>
+        <tr><td>Managed runtime</td><td>Studio</td><td>Foundry-hosted</td><td>—</td><td>LangGraph Platform</td><td>Crew Enterprise</td><td>None</td><td>Llama Cloud</td><td>deepset Cloud</td><td>AutoGPT Platform</td><td>None</td><td>None</td><td>Letta Cloud</td><td>None</td><td>Vertex Agent Engine</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3 id="quadrant">4.1 Orchestration depth vs production durability <a class="anchor" href="#quadrant">#</a></h3>
+    <pre class="mermaid">
+quadrantChart
+    title Agent frameworks: orchestration depth vs production durability
+    x-axis "Light orchestration" --> "Deep orchestration"
+    y-axis "Library only" --> "Durable platform"
+    quadrant-1 "Production platforms"
+    quadrant-2 "Durable libraries"
+    quadrant-3 "Lightweight SDKs"
+    quadrant-4 "Orchestration libs"
+    "OpenAI Agents SDK": [0.25, 0.25]
+    "Pydantic AI": [0.20, 0.20]
+    "Smolagents": [0.20, 0.15]
+    "Haystack": [0.55, 0.55]
+    "LlamaIndex": [0.60, 0.60]
+    "AutoGen": [0.70, 0.40]
+    "CrewAI": [0.65, 0.60]
+    "LangGraph": [0.85, 0.80]
+    "MAF": [0.90, 0.90]
+    "Semantic Kernel": [0.50, 0.55]
+    "AutoGPT Platform": [0.55, 0.85]
+    "Google ADK": [0.70, 0.75]
+    </pre>
+
+    <h3 id="decision-tree">4.2 Decision tree <a class="anchor" href="#decision-tree">#</a></h3>
+    <pre class="mermaid">
+flowchart TD
+    A[New agent project] --> B{Need .NET?}
+    B -- Yes --> C[MAF or SK<br/>Prefer MAF for new builds]
+    B -- No --> D{Durable graph workflows + HITL?}
+    D -- Yes --> E{Already in LangChain / LangSmith?}
+    E -- Yes --> F[LangGraph]
+    E -- No --> G[MAF Python or LangGraph<br/>MAF if Azure-anchored]
+    D -- No --> H{Multi-agent pattern important?}
+    H -- Yes --> I{Research / experimental?}
+    I -- Yes --> J[AutoGen 0.4]
+    I -- No --> K{Role-based simple?}
+    K -- Yes --> L[CrewAI]
+    K -- No --> M[OpenAI Agents SDK or MAF]
+    H -- No --> N{RAG-heavy?}
+    N -- Yes --> O{Pipeline-strict / Apache 2.0?}
+    O -- Yes --> P[Haystack]
+    O -- No --> Q[LlamaIndex AgentWorkflow]
+    N -- No --> R[OpenAI Agents SDK or Pydantic AI]
+    </pre>
+
+    <hr />
+
+    <!-- =========================== USE CASES ============================ -->
+    <h2 id="use-cases">5. Best framework choices by use case <a class="anchor" href="#use-cases">#</a></h2>
+    <div class="cards">
+      <div class="card"><h4>Enterprise agent platform</h4><p><strong>MAF</strong> &mdash; .NET + Python parity, durable graph workflows, HITL, OTel-native, declarative YAML, Foundry-hosted runtime, 1.0 LTS.</p></div>
+      <div class="card"><h4>Multi-agent research</h4><p><strong>AutoGen 0.4</strong> &mdash; richest pre-built patterns (Magentic-One, Swarm); great community for novel collaboration research; AutoGen Bench.</p></div>
+      <div class="card"><h4>Production workflow automation</h4><p><strong>LangGraph</strong> &mdash; mature graph + persistence, time-travel, LangSmith. <em>MAF</em> if you're on the Microsoft stack.</p></div>
+      <div class="card"><h4>LLM application backend</h4><p><strong>OpenAI Agents SDK</strong> &mdash; minimal API, handoffs, guardrails, tracing; Python + TS parity. <em>Pydantic AI</em> for type-safety.</p></div>
+      <div class="card"><h4>Observability / evaluation</h4><p><strong>LangSmith + LangGraph</strong> end-to-end. <em>Langfuse</em>, <em>Phoenix</em>, <em>Foundry Eval</em> for OSS-friendly stacks.</p></div>
+      <div class="card"><h4>Low-code / no-code builder</h4><p><strong>AutoGPT Platform</strong> visual blocks. <em>CrewAI Studio</em> for role-based teams. <em>Foundry Agent Studio</em> in MAF ecosystem.</p></div>
+      <div class="card"><h4>RAG-heavy agent system</h4><p><strong>LlamaIndex AgentWorkflow</strong> &mdash; best RAG integration. <em>Haystack</em> for type-safe pipelines and Apache 2.0.</p></div>
+      <div class="card"><h4>TypeScript-first</h4><p><strong>OpenAI Agents JS</strong> for ergonomics; <em>LangGraph JS</em> for graph workflows; <em>Mastra</em> for Node-only shops.</p></div>
+      <div class="card"><h4>Long-term memory assistants</h4><p><strong>Letta</strong> behind MAF/LangGraph. Alternatives: <em>LangMem</em>, <em>mem0</em>.</p></div>
+      <div class="card"><h4>Code-writing agents</h4><p><strong>Smolagents</strong> or <strong>MAF Agent Harness</strong> + sandboxes; OpenAI Agents SDK + computer use as fallback.</p></div>
+    </div>
+
+    <hr />
+
+    <!-- =========================== LEARNING PATH ============================ -->
+    <h2 id="learning-path">6. Recommended learning path (6 weeks) <a class="anchor" href="#learning-path">#</a></h2>
+    <ol class="compact">
+      <li><strong>Week 1 — Foundations.</strong> Read OpenAI "Building Agents" and Anthropic "Building effective agents". Build a single-agent ReAct loop with <em>OpenAI Agents SDK</em>. Add a guardrail and tracing.</li>
+      <li><strong>Week 2 — Multi-agent.</strong> Build a 3-agent research/writer/critic in <em>AutoGen 0.4 AgentChat</em> with <code>SelectorGroupChat</code>. Wire MCP tools. Run AutoGen Bench.</li>
+      <li><strong>Week 3 — Graph workflows.</strong> Same pipeline in <em>LangGraph</em> with checkpointer + <code>interrupt()</code> + LangSmith.</li>
+      <li><strong>Week 4 — MAF deep dive.</strong> Walk Python &amp; .NET getting-started samples; turn on DevUI; wire OpenTelemetry to Aspire/Phoenix; implement Magentic + handoff workflow.</li>
+      <li><strong>Week 5 — Production.</strong> Add HITL with <code>RequestInfoExecutor</code>; long-term memory; evals (Foundry/LangSmith); deploy to Foundry-hosted agents + CopilotKit.</li>
+      <li><strong>Week 6 — RAG &amp; biz automation.</strong> Build a RAG agent with <em>LlamaIndex AgentWorkflow</em>; build a role-based crew with <em>CrewAI</em>; compare to MAF.</li>
+    </ol>
+    <p><strong>Capstone.</strong> Multi-agent ticketing assistant (intake → triage → research → draft → human approval → resolve), built twice (LangGraph + MAF), instrumented with OTel, evaluated on a 50-task golden set.</p>
+
+    <hr />
+
+    <!-- =========================== INTERVIEW PREP ============================ -->
+    <h2 id="interview-prep">7. Interview prep <a class="anchor" href="#interview-prep">#</a></h2>
+    <p class="lede">Questions you should be able to answer in a senior AI-platform interview. Click any question to expand the model answer.</p>
+
+    <h3 id="prep-conceptual">7.1 Conceptual <a class="anchor" href="#prep-conceptual">#</a></h3>
+
+    <details class="qa">
+      <summary>What distinguishes an "agent" from a "chatbot" or a "RAG pipeline"?</summary>
+      <div class="answer">
+        <p>An <strong>agent</strong> autonomously plans actions, picks tools, observes outcomes, and iterates toward a goal — i.e. it has a control loop that mutates state. A chatbot is a single-turn (or multi-turn) responder with no autonomous tool use. A RAG pipeline is a static retrieval + generation flow with no decision-making about what to do next. The defining axis is <em>autonomy over the action space</em>: which tool to call, when to stop, when to ask a human, when to delegate.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>Compare ReAct, Plan-and-Execute, ToT and Reflexion. When would you choose each?</summary>
+      <div class="answer">
+        <p><strong>ReAct</strong> interleaves <em>thought → action → observation</em> in a tight loop. Cheap and effective; default for most agents.<br />
+        <strong>Plan-and-Execute</strong> first builds a multi-step plan, then runs it. Better for tasks where the cost of exploration is high or steps must be parallelisable.<br />
+        <strong>Tree-of-Thoughts (ToT)</strong> explores branching reasoning trees with a value function. Use for hard combinatorial search (proofs, puzzles); expensive.<br />
+        <strong>Reflexion</strong> adds a self-critique pass that updates an episodic memory after each attempt. Useful when retries are cheap and consistency matters (code, evals).</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>Why did Microsoft create Agent Framework when AutoGen and Semantic Kernel already existed?</summary>
+      <div class="answer">
+        <p>AutoGen lacked production-grade durability (no first-class graph workflows, no checkpointing, weak hosting story). Semantic Kernel had enterprise discipline but its agent abstractions were lighter than AutoGen's. MAF unifies both lineages into one framework with shared concepts in Python and .NET, adds typed graph workflows, durable state with time-travel, native HITL, OpenTelemetry, declarative YAML agents, DevUI, and Foundry-hosted runtime — the gaps that prevented teams from going to production on either predecessor.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>What is MCP and why does it matter?</summary>
+      <div class="answer">
+        <p>The <strong>Model Context Protocol</strong> is an open standard for exposing tools, prompts and resources to LLMs over a structured RPC channel (stdio, SSE, HTTP). It matters because it decouples tool implementation from agent runtime: a single MCP server (e.g. for GitHub or a SQL database) can be consumed by AutoGen, MAF, LangGraph, Claude Code, Cursor, OpenAI Agents SDK, etc. without re-implementing tool wrappers per framework. It is the "USB-C of agent tools".</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>Explain "agents-as-tools" vs "handoffs". When is each appropriate?</summary>
+      <div class="answer">
+        <p><strong>Agents-as-tools</strong> exposes a sub-agent as a callable tool — the parent agent retains control and the sub-agent's reply is just another tool result. Best for orchestrator/specialist patterns where the orchestrator must decide and synthesise.</p>
+        <p><strong>Handoffs</strong> transfer control entirely to another agent, which then drives the conversation (and may handoff again). Best for triage / routing patterns (customer support → billing specialist).</p>
+        <p>OpenAI Agents SDK and AutoGen Swarm use handoffs. MAF supports both via Workflow handoff edges and tool-style sub-agents.</p>
+      </div>
+    </details>
+
+    <h3 id="prep-architecture">7.2 Architecture &amp; design <a class="anchor" href="#prep-architecture">#</a></h3>
+
+    <details class="qa">
+      <summary>Walk me through the layered architecture of AutoGen v0.4.</summary>
+      <div class="answer">
+        <p>Three layers. <strong>Core</strong> is an asynchronous, event-driven actor runtime (single-process or distributed via gRPC) that defines an <code>AgentRuntime</code>, addressable agents, async messages, topics and subscriptions. <strong>AgentChat</strong> is a high-level API on top: <code>AssistantAgent</code>, <code>UserProxyAgent</code>, group chat patterns (<code>RoundRobin</code>, <code>Selector</code>, <code>Swarm</code>, <code>MagenticOne</code>) and termination conditions. <strong>Extensions</strong> provide model clients, code executors (Docker/Jupyter/ACI), tools and memory providers. AutoGen Studio and Bench sit above AgentChat for low-code authoring and benchmarking.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>Walk me through the MAF Workflow engine and how it differs from AutoGen group chat.</summary>
+      <div class="answer">
+        <p>A MAF Workflow is a typed directed graph of <code>Executor</code> nodes connected by <code>Edge</code>s; messages flowing along edges are typed contracts. Patterns (sequential, concurrent fan-out/fan-in, handoff, group chat, Magentic) are pre-built Workflow templates. The engine streams events to consumers, persists state via a <em>checkpointer</em> after each step, and supports resume and time-travel (jump to a previous checkpoint and re-execute). HITL is modelled as a <code>RequestInfoExecutor</code> that pauses and emits a <code>RequestInfo</code> event the host fulfils.</p>
+        <p>AutoGen group chat is a <em>conversation</em> abstraction: agents pass natural-language messages and a manager picks who speaks. There is no typed graph, no built-in checkpointer, and HITL is a <code>UserProxyAgent</code> participant. MAF's typed graph wins on durability, governance, and predictable structure; AutoGen's conversation wins on flexibility and emergent reasoning.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>How does LangGraph's StateGraph + reducers actually work?</summary>
+      <div class="answer">
+        <p>You declare state as a <code>TypedDict</code> where each field is annotated with a <em>reducer</em> (e.g. <code>Annotated[list, add]</code>). A graph is a set of nodes (functions <code>state -&gt; partial state update</code>) and edges (static or conditional). After each node returns, the runtime applies the reducer to merge the update into the current state. A compiled graph runs against a <em>thread</em> identified by <code>thread_id</code>; if a checkpointer is attached, every step is persisted as an immutable checkpoint, enabling resume, time-travel, and inspection. <code>interrupt()</code> raises a special exception that surfaces a payload to the caller; the caller resumes by invoking the graph with <code>Command(resume=value)</code>.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>How would you decide between LangGraph and MAF for a green-field Python-only project?</summary>
+      <div class="answer">
+        <p>Both have typed graph workflows, durable checkpoints, time-travel and HITL primitives. Differentiators:</p>
+        <ul class="compact">
+          <li>If you're <strong>Microsoft/Azure-anchored</strong> (AAD, App Insights, Foundry, App Service) — pick MAF; declarative YAML agents and Foundry-hosted runtime are real time-savers.</li>
+          <li>If you're already invested in <strong>LangChain + LangSmith</strong>, or you need the largest open-source community and richest off-the-shelf tools — pick LangGraph.</li>
+          <li>If <strong>.NET parity</strong> is on the roadmap — MAF is the only credible answer.</li>
+          <li>If <strong>cost-of-LLMOps</strong> matters and you want a single hosted control plane — LangGraph Platform + LangSmith is the most batteries-included.</li>
+        </ul>
+      </div>
+    </details>
+
+    <h3 id="prep-multiagent">7.3 Multi-agent patterns <a class="anchor" href="#prep-multiagent">#</a></h3>
+
+    <details class="qa">
+      <summary>What is the Magentic / Magentic-One pattern?</summary>
+      <div class="answer">
+        <p>An orchestrator agent maintains a "task ledger" (facts, plan, progress) and a "progress ledger" (open questions, next-action chooser). It dispatches work to specialist agents (web surfer, file surfer, coder, computer terminal). After each step the orchestrator updates the ledger, evaluates whether the plan is still on track, replans if stalled, and decides who acts next. It's effectively a planner-executor with structured self-reflection. Implemented natively in AutoGen (<code>MagenticOneGroupChat</code>) and MAF (Magentic workflow pattern).</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>How do you prevent a multi-agent system from looping or cost-blowing-up?</summary>
+      <div class="answer">
+        <ul class="compact">
+          <li>Hard turn limits (<code>MaxMessageTermination</code>, recursion limit in LangGraph).</li>
+          <li>Budget-per-thread guardrails (token + USD).</li>
+          <li>Termination conditions on agent output (<code>TextMentionTermination("DONE")</code>, structured "done" flags).</li>
+          <li>Cycle detection: if state hasn't changed N steps, escalate to human.</li>
+          <li>Orchestrator-level progress ledger (Magentic) that detects no-progress and replans.</li>
+          <li>Trace + alert on outlier traces in LangSmith / OTel.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>Supervisor vs swarm vs hierarchical — when does each shine?</summary>
+      <div class="answer">
+        <p><strong>Supervisor</strong> (single coordinator routes to workers) is best when one agent should own context and synthesise — e.g. research writer, customer-support orchestrator. Predictable but bottlenecked by the supervisor.<br />
+        <strong>Swarm</strong> (peer agents handoff to each other) is best for stateful triage where the "right" specialist owns the conversation and may bounce again — e.g. multi-domain support.<br />
+        <strong>Hierarchical</strong> (teams of teams) is best for large bounded problems with clear sub-domains — e.g. MetaGPT's PM/Architect/Engineer/QA.</p>
+      </div>
+    </details>
+
+    <h3 id="prep-tools">7.4 Tools &amp; memory <a class="anchor" href="#prep-tools">#</a></h3>
+
+    <details class="qa">
+      <summary>How are function tools converted to LLM tool schemas under the hood?</summary>
+      <div class="answer">
+        <p>Most frameworks introspect the Python signature (or .NET attributes) and a docstring. Type hints + <code>Annotated</code>/<code>Description</code> metadata drive a JSON Schema; the docstring becomes the tool description. The framework registers the schema with the model client (OpenAI tools, Anthropic tools, Ollama function calling). When the LLM emits a tool call, the framework parses arguments against the schema, runs the function, and feeds back a structured tool message. MAF uses <code>AIFunction</code>; AutoGen uses <code>FunctionTool</code>; OpenAI SDK uses <code>@function_tool</code>; Pydantic AI uses Pydantic models for both arguments and outputs.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>What memory layers should a production agent have?</summary>
+      <div class="answer">
+        <ol class="compact">
+          <li><strong>Working / context window</strong> — current turn + recent N messages.</li>
+          <li><strong>Thread / session memory</strong> — full conversation, summarised when stale.</li>
+          <li><strong>Episodic memory</strong> — distilled facts from prior threads (user preferences, prior decisions).</li>
+          <li><strong>Semantic / knowledge memory</strong> — RAG over docs / KB.</li>
+          <li><strong>Procedural memory</strong> — learned skills (cached plans, code snippets).</li>
+        </ol>
+        <p>MAF expresses (1)–(2) via <code>AgentThread</code>, (3)–(4) via <code>IMemory</code> providers and skills, (5) via tools/sub-workflows. Letta specialises in (3). LangMem/mem0 cover (3)–(4). Avoid pushing everything into the context window — keep it minimal and recall on demand.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>How would you implement HITL for a high-risk action like a wire transfer?</summary>
+      <div class="answer">
+        <p>Model the workflow as a graph with an explicit approval node. In MAF, use <code>RequestInfoExecutor</code> to pause and emit a structured <code>RequestInfo</code> with the proposed payload; persist a checkpoint; surface to the operator UI; on response, resume. Pair with: tool-call approval middleware (no tool runs without operator OK on a flagged tool), guardrails on input (PII / amount thresholds), audit log written to immutable storage, idempotency keys, and a kill switch via feature flag. Equivalent in LangGraph: <code>interrupt()</code> + checkpointer + Studio approval UI.</p>
+      </div>
+    </details>
+
+    <h3 id="prep-production">7.5 Production concerns <a class="anchor" href="#prep-production">#</a></h3>
+
+    <details class="qa">
+      <summary>How do you observe an agent system end-to-end?</summary>
+      <div class="answer">
+        <p>Use OpenTelemetry semantic conventions for GenAI:</p>
+        <ul class="compact">
+          <li>Spans: <em>agent.run</em>, <em>workflow.executor</em>, <em>llm.call</em>, <em>tool.call</em>, <em>handoff</em>, <em>guardrail</em>, <em>request_info</em>.</li>
+          <li>Attributes: model, prompt &amp; completion tokens, cost, tool name, args (redacted), thread_id, user_id, agent_name, parent span.</li>
+          <li>Events: tool_arguments, tool_result, error.</li>
+          <li>Metrics: tokens-per-thread, $-per-thread, tool-error-rate, agent-completion-rate.</li>
+        </ul>
+        <p>Export to Application Insights, Jaeger, Honeycomb, Phoenix, Langfuse, or LangSmith. MAF emits this natively; OpenAI Agents SDK does too.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>How do you evaluate an agent?</summary>
+      <div class="answer">
+        <p>Three layers:</p>
+        <ol class="compact">
+          <li><strong>Component</strong> — unit test each tool, prompt, retriever (golden answers, exact-match, schema validity).</li>
+          <li><strong>Trajectory</strong> — judge whether the agent's plan was correct, tools were used appropriately, no hallucinated calls. LLM-as-judge with rubric, or programmatic checks ("did it call X with Y?").</li>
+          <li><strong>End-to-end</strong> — golden-set scoring: correctness, faithfulness, latency, cost, refusal-rate. Run on every PR via LangSmith / Foundry Eval / agent-framework-lab.</li>
+        </ol>
+        <p>Use offline evals for regressions and online evals (sampled production traces graded by an LLM or human) for drift.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>How do you secure an agent that calls tools and external APIs?</summary>
+      <div class="answer">
+        <ul class="compact">
+          <li><strong>Identity</strong>: per-user or per-tenant scoped credentials; never share a global token.</li>
+          <li><strong>Authorization</strong>: tool-level RBAC; each tool checks the caller's permissions before executing.</li>
+          <li><strong>Sandboxing</strong>: code execution in disposable containers (Docker, ACI) with no host filesystem; egress allow-list.</li>
+          <li><strong>Prompt injection defence</strong>: treat tool outputs as untrusted; strip or escape system-prompt-overriding strings; use guardrails to detect injection attempts; consider dual-LLM with a "planner" that never sees raw tool output.</li>
+          <li><strong>Data handling</strong>: redact PII in spans; encrypt checkpoints; rotate keys.</li>
+          <li><strong>Rate-limit + budget</strong>: per-user token / cost ceilings; circuit breaker.</li>
+          <li><strong>HITL</strong> for irreversible actions.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>What's the difference between a stateless and a durable agent runtime, and when do you need durable?</summary>
+      <div class="answer">
+        <p>A stateless runtime keeps thread state in memory; a crash loses it. A durable runtime persists checkpoints after each step (MAF, LangGraph, Temporal-backed agents) so a crashed or paused workflow can resume exactly where it left off. You need durable when: workflows are long-running (hours/days), HITL pauses span human time, you need to rewind/time-travel for debugging, or you must guarantee at-most-once side effects across retries. For sub-second chat, stateless + idempotent tools is fine.</p>
+      </div>
+    </details>
+
+    <h3 id="prep-maf">7.6 MAF deep-dive questions <a class="anchor" href="#prep-maf">#</a></h3>
+
+    <details class="qa">
+      <summary>What are the core building blocks of MAF?</summary>
+      <div class="answer">
+        <p><code>AIAgent</code> (provider-agnostic chat agent), tools (functions / MCP / OpenAPI / Foundry-hosted), middleware (request/response/exception pipelines), <code>AgentThread</code> (per-conversation state), <code>IMemory</code> providers, Skills, and the <strong>Workflow</strong> graph engine (<code>Workflow</code>, <code>Executor</code>, <code>Edge</code>, <code>WorkflowBuilder</code>). On top: hosting (local, ASP.NET Core, FastAPI, Foundry-hosted, Agent Harness), DevUI debugger, and front-end adapters (AG-UI, CopilotKit, ChatKit).</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>What MAF features are GA vs preview as of 1.0?</summary>
+      <div class="answer">
+        <p><strong>GA / LTS:</strong> agents, workflows, memory, middleware, orchestration patterns (sequential, concurrent, handoff, group chat, Magentic), checkpointing, observability via OTel, declarative YAML agents.</p>
+        <p><strong>Preview:</strong> DevUI, Foundry-hosted agents (turnkey hosting), Foundry-backed memory and tools, evaluations, front-end adapters (AG-UI, CopilotKit, ChatKit), reusable skills, GitHub Copilot SDK and Claude Code SDK integration, and Agent Harness for shell/file/messaging loops.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>How do you implement a sequential workflow in MAF (Python)?</summary>
+      <div class="answer">
+<pre><code>from agent_framework import WorkflowBuilder
+
+workflow = (
+    WorkflowBuilder()
+        .add_executor(researcher)
+        .add_executor(writer)
+        .add_executor(editor)
+        .add_edge(researcher, writer)
+        .add_edge(writer, editor)
+        .build()
+)
+
+async for event in workflow.run("Write a blog post about MCP"):
+    print(event)
+</code></pre>
+        <p>Each executor is typed; checkpointer can be attached at build time; <code>RequestInfoExecutor</code> can be inserted anywhere to pause for HITL.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>How does MAF stay provider-agnostic?</summary>
+      <div class="answer">
+        <p>Through <code>Microsoft.Extensions.AI.IChatClient</code> (and the Python equivalent <code>ChatClient</code> protocol). Concrete implementations exist for Foundry, Azure OpenAI, OpenAI, Anthropic, AWS Bedrock, Ollama, GitHub Copilot SDK and Claude Code SDK. <code>AIAgent</code> takes any <code>IChatClient</code>, so swapping providers is a configuration change. Tools are described via <code>AIFunction</code>/Python annotations and translated to the model-specific tool schema by the chat client.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>How would you migrate an AutoGen 0.4 group chat to MAF?</summary>
+      <div class="answer">
+        <ol class="compact">
+          <li>Map AutoGen <code>AssistantAgent</code> → MAF <code>AIAgent</code> with the same tools and instructions.</li>
+          <li>Replace <code>SelectorGroupChat</code> with a MAF group-chat workflow pattern, or design a typed handoff graph for stricter contracts.</li>
+          <li>Replace <code>UserProxyAgent</code> with a <code>RequestInfoExecutor</code> node that emits structured <code>RequestInfo</code> events; bind a UI adapter (CopilotKit or AG-UI) to fulfil them.</li>
+          <li>Wire memory: AutoGen's memory provider → MAF <code>IMemory</code>.</li>
+          <li>Turn on the OpenTelemetry exporter and DevUI to verify behaviour parity.</li>
+          <li>Add a checkpointer for durability.</li>
+        </ol>
+        <p>Microsoft publishes a step-by-step migration guide; expect a behavioural-parity period where you run both side-by-side and diff traces.</p>
+      </div>
+    </details>
+
+    <h3 id="prep-systemdesign">7.7 System-design exercises <a class="anchor" href="#prep-systemdesign">#</a></h3>
+
+    <details class="qa">
+      <summary>Design a customer-support agent that handles refunds, can escalate to humans, and is auditable.</summary>
+      <div class="answer">
+        <p><strong>Topology.</strong> Triage agent (intent classification) → handoff to: (a) FAQ agent (RAG), (b) Refund agent, (c) Live-agent escalation. Refund agent calls a <em>preview-refund</em> tool, then a <code>RequestInfoExecutor</code> for human approval if amount &gt; $100, then commit-refund tool.</p>
+        <p><strong>State.</strong> Per-user thread with conversation, ticket id, user tier. Per-workflow checkpoint after each executor.</p>
+        <p><strong>Tools.</strong> <em>lookup_order</em>, <em>preview_refund</em>, <em>commit_refund</em>, <em>create_ticket</em>, <em>kb_search</em>. All idempotent with operation IDs.</p>
+        <p><strong>Memory.</strong> Thread memory; episodic memory of prior tickets; KB via vector store.</p>
+        <p><strong>Guardrails.</strong> Refund amount cap; PII redaction; refusal on out-of-scope.</p>
+        <p><strong>Observability.</strong> OTel spans + replay for any disputed transaction; immutable audit log.</p>
+        <p><strong>Eval.</strong> Golden 200-ticket set graded weekly on resolution rate, escalation rate, refund accuracy. Online sampled eval on production traces.</p>
+        <p>Implement in MAF for .NET-shop or LangGraph for OSS-only.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>Design a research assistant that produces a 10-page report from a single prompt.</summary>
+      <div class="answer">
+        <p>Magentic-style orchestration. Orchestrator builds a task ledger (sub-questions, sources, draft sections); dispatches: <em>Web search agent</em> (Bing tool / Tavily), <em>Reader agent</em> (URL → summary), <em>Synthesiser</em> (per section), <em>Critic</em> (factual, completeness, novelty), <em>Writer</em> (final assembly with citations). Use parallel fan-out for sub-question search, then fan-in for synthesis. Persist intermediate state for resume on failure. Add a HITL approval before writer for cost-sensitive runs. Use LlamaIndex AgentWorkflow for the RAG-heavy parts; orchestrate everything from a MAF or LangGraph workflow.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>How would you evaluate three candidate agent frameworks for a 1-year enterprise commitment?</summary>
+      <div class="answer">
+        <p>Score each on: licence + redistributability, language parity with your stack, depth of multi-agent primitives, durability/checkpointing, HITL primitives, observability standardisation (OTel), eval tooling, deployment options (managed + self-hosted), security posture (isolation, secrets), governance (RBAC, audit), declarative authoring, vendor lock-in (provider-agnostic LLM clients), community + commercial support, and a 6-month roadmap. Then run the same realistic capstone on each (e.g. multi-agent ticketing assistant) and compare LOC, traces, time-to-first-success, cost per run, and operator UX. Document the verdict with a 2x2 (must-have / nice-to-have).</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>Behavioural: tell me about a time you had to choose between AutoGen and MAF (or LangGraph and MAF).</summary>
+      <div class="answer">
+        <p>Use STAR. Example: "Situation — we needed an internal compliance reviewer that pauses for officer approval. Task — pick a framework. Action — I prototyped both AutoGen 0.4 (familiar to the team) and MAF Python in two days. AutoGen needed a custom checkpoint layer for HITL; MAF's <code>RequestInfoExecutor</code> + checkpointer worked out of the box, and DevUI gave reviewers a live graph view that reduced bug triage time from hours to minutes. Result — chose MAF, shipped in 4 weeks, replay-from-checkpoint cut MTTR by 60%." Pivot to: trade-offs honestly named (smaller community, preview features still moving), and how you mitigated (pinning versions, abstracting the chat client behind an interface).</p>
+      </div>
+    </details>
+
+    <hr />
+
+    <!-- =========================== LINKS ============================ -->
+    <h2 id="links">8. Curated links <a class="anchor" href="#links">#</a></h2>
+    <h3>Microsoft AutoGen</h3>
+    <ul class="compact">
+      <li>Docs &mdash; <a href="https://microsoft.github.io/autogen/stable/">microsoft.github.io/autogen</a></li>
+      <li>Repo &mdash; <a href="https://github.com/microsoft/autogen">microsoft/autogen</a></li>
+      <li>Migration to MAF &mdash; <a href="https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/">learn.microsoft.com</a></li>
+      <li>v0.4 launch blog &mdash; <a href="https://devblogs.microsoft.com/autogen/autogen-reimagined-launching-autogen-0-4/">devblogs.microsoft.com/autogen</a></li>
+    </ul>
+    <h3>Microsoft Agent Framework</h3>
+    <ul class="compact">
+      <li>Docs &mdash; <a href="https://learn.microsoft.com/en-us/agent-framework/">learn.microsoft.com/agent-framework</a></li>
+      <li>Workflows &mdash; <a href="https://learn.microsoft.com/en-us/agent-framework/workflows/">learn.microsoft.com/agent-framework/workflows</a></li>
+      <li>Repo &mdash; <a href="https://github.com/microsoft/agent-framework">microsoft/agent-framework</a></li>
+      <li>Devblog &mdash; <a href="https://devblogs.microsoft.com/agent-framework/">devblogs.microsoft.com/agent-framework</a></li>
+      <li>1.0 GA blog &mdash; <a href="https://devblogs.microsoft.com/agent-framework/microsoft-agent-framework-version-1-0/">version 1.0 release</a></li>
+    </ul>
+    <h3>LangGraph</h3>
+    <ul class="compact">
+      <li>Docs &mdash; <a href="https://docs.langchain.com/oss/python/langgraph/">docs.langchain.com</a></li>
+      <li>Repo &mdash; <a href="https://github.com/langchain-ai/langgraph">langchain-ai/langgraph</a></li>
+      <li>Academy course &mdash; <a href="https://academy.langchain.com/courses/intro-to-langgraph">Intro to LangGraph</a></li>
+    </ul>
+    <h3>Others</h3>
+    <ul class="compact">
+      <li>CrewAI &mdash; <a href="https://docs.crewai.com/">docs.crewai.com</a> · <a href="https://github.com/crewAIInc/crewAI">repo</a></li>
+      <li>OpenAI Agents SDK &mdash; <a href="https://openai.github.io/openai-agents-python/">Python docs</a> · <a href="https://github.com/openai/openai-agents-python">repo</a></li>
+      <li>LlamaIndex &mdash; <a href="https://developers.llamaindex.ai/python/framework/">developers.llamaindex.ai</a></li>
+      <li>Haystack &mdash; <a href="https://docs.haystack.deepset.ai/docs/intro">docs.haystack.deepset.ai</a></li>
+      <li>AutoGPT &mdash; <a href="https://github.com/Significant-Gravitas/AutoGPT">repo</a></li>
+      <li>Pydantic AI &mdash; <a href="https://ai.pydantic.dev/">ai.pydantic.dev</a></li>
+      <li>Smolagents &mdash; <a href="https://huggingface.co/docs/smolagents">huggingface.co/docs/smolagents</a></li>
+      <li>Letta &mdash; <a href="https://docs.letta.com/">docs.letta.com</a></li>
+      <li>Google ADK &mdash; <a href="https://google.github.io/adk-docs/">google.github.io/adk-docs</a></li>
+    </ul>
+
+    <hr />
+    <p style="color:var(--fg-mute);font-size:.9em;">
+      Hosted from this repository under <code>docs/research/site/</code>. Source markdown:
+      <a href="../open-source-agent-frameworks.md">open-source-agent-frameworks.md</a>.
+      Diagram <code>.mmd</code> sources: <a href="../diagrams/">../diagrams/</a>.
+    </p>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  // Mermaid theme follows OS preference
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: dark ? 'dark' : 'default',
+    securityLevel: 'loose',
+    flowchart: { curve: 'basis', useMaxWidth: true },
+    themeVariables: dark ? {
+      background: '#11141b',
+      primaryColor: '#1a2030',
+      primaryBorderColor: '#3a4258',
+      primaryTextColor: '#e6e8ee',
+      lineColor: '#7a8290',
+      tertiaryColor: '#161a23'
+    } : undefined
+  });
+
+  // Sidebar toggle for mobile
+  const toggleBtn = document.getElementById('toggleToc');
+  const toc = document.getElementById('toc');
+  toggleBtn && toggleBtn.addEventListener('click', () => toc.classList.toggle('open'));
+
+  // Active link on scroll
+  const links = Array.from(document.querySelectorAll('aside.toc nav a'));
+  const sections = links
+    .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+    .filter(Boolean);
+  const setActive = () => {
+    const y = window.scrollY + 120;
+    let activeId = null;
+    for (const s of sections) {
+      if (s.offsetTop <= y) activeId = s.id;
+    }
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + activeId));
+  };
+  document.addEventListener('scroll', setActive, { passive: true });
+  setActive();
+</script>
+</body>
+</html>
