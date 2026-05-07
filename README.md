@@ -111,6 +111,16 @@ A senior architect's research note comparing Microsoft Agent Framework with Auto
 
 > **To enable the GitHub Pages site:** in your fork, go to `Settings → Pages`, set *Source* to `Deploy from a branch`, *Branch* to `main` (or your working branch), and *Folder* to `/docs`. The page will be served at `https://<your-user>.github.io/agent-framework/research/site/`.
 
+#### From AutoGen to Microsoft Agent Framework &mdash; Evolution, Trade-offs &amp; Interview Prep
+
+A separate Jekyll-ready GitHub Pages site that traces how Microsoft AutoGen evolved into Microsoft Agent Framework — verified history (Aug 2023 paper → Jan 2025 v0.4 → Oct 2025 MAF preview → Apr 2026 MAF 1.0 GA), engineering trade-offs, enterprise platform lessons, system-design exercises, and a deep interview-prep workbook (3-altitude answers, story bank, spaced-repetition flashcards, full mock-interview transcripts, novel storytelling formats).
+
+- **Site folder:** [`autogen-to-agent-framework/`](./autogen-to-agent-framework/)
+- **Start here:** [`autogen-to-agent-framework/index.md`](./autogen-to-agent-framework/index.md)
+- **Interview prep:** [interview-questions](./autogen-to-agent-framework/interview-questions.md) · [follow-up chains](./autogen-to-agent-framework/follow-up-questions.md) · [flashcards](./autogen-to-agent-framework/flashcards.md) · [mock interviews](./autogen-to-agent-framework/mock-interviews.md)
+- **Storytelling toolkit:** [`storytelling-toolkit.md`](./autogen-to-agent-framework/storytelling-toolkit.md)
+- **Build / publish:** see the folder's [`README.md`](./autogen-to-agent-framework/README.md) for `bundle exec jekyll serve` and Pages publishing instructions.
+
 ### Quickstart
 
 #### Basic Agent - Python
