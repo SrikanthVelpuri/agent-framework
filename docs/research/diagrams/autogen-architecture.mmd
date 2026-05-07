@@ -1,0 +1,46 @@
+%% Microsoft AutoGen v0.4 layered architecture
+flowchart TB
+    subgraph Apps["Apps and tooling"]
+        Studio["AutoGen Studio\n(low-code UI)"]
+        Bench["AutoGen Bench\n(benchmark harness)"]
+        Custom["Custom Python apps"]
+    end
+
+    subgraph AgentChat["autogen-agentchat (high-level API)"]
+        Assistant["AssistantAgent"]
+        UserProxy["UserProxyAgent"]
+        Round["RoundRobinGroupChat"]
+        Selector["SelectorGroupChat"]
+        Swarm["Swarm"]
+        Magentic["MagenticOneGroupChat"]
+        Termination["Termination conditions"]
+    end
+
+    subgraph CoreLayer["autogen-core (event-driven actor runtime)"]
+        Runtime["AgentRuntime\n(single-process or distributed gRPC)"]
+        Actor["Agent (actor)"]
+        Messaging["Async messaging\nrequest/response + pub/sub"]
+        Topics["Topics & subscriptions"]
+    end
+
+    subgraph Ext["autogen-ext (integrations)"]
+        Models["Model clients\nOpenAI · Azure · Anthropic · Ollama"]
+        CodeExec["Code executors\nDocker · Jupyter · ACI"]
+        ToolsExt["Tools\nFunctionTool · MCP · web surfer · file"]
+        Memory["Memory providers\nMem0 · Chroma · custom"]
+    end
+
+    subgraph Obs["Observability"]
+        OTel["OpenTelemetry traces"]
+        Logs["Structured logs"]
+    end
+
+    Custom --> AgentChat
+    Studio --> AgentChat
+    Bench --> AgentChat
+    AgentChat --> CoreLayer
+    AgentChat --> Ext
+    CoreLayer --> Ext
+    CoreLayer --> OTel
+    AgentChat --> OTel
+    Ext --> Logs

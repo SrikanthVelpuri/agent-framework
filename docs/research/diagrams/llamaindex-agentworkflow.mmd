@@ -1,0 +1,45 @@
+%% LlamaIndex Workflows + AgentWorkflow
+flowchart TB
+    subgraph WF["Workflow engine (event-driven)"]
+        Step1["@step\nhandler"]
+        Step2["@step\nhandler"]
+        Step3["@step\nhandler"]
+        Ctx["Context\n(shared state, streaming)"]
+        Events["Events"]
+    end
+
+    subgraph AW["AgentWorkflow (multi-agent)"]
+        Func["FunctionAgent"]
+        ReAct["ReActAgent"]
+        Handoff["Handoffs between agents"]
+    end
+
+    subgraph Tools["Tools"]
+        FT["FunctionTool"]
+        QE["QueryEngineTool (RAG)"]
+        MCP["MCP"]
+    end
+
+    subgraph Mem["Memory"]
+        Buffer["ChatMemoryBuffer"]
+        Vec["Vector stores"]
+        Cloud["Llama Cloud memory"]
+    end
+
+    subgraph Ops["Observability + Eval"]
+        OI["OpenInference traces"]
+        LIE["LlamaIndex Evals"]
+        LC["Llama Cloud"]
+    end
+
+    Step1 --> Events --> Step2 --> Events --> Step3
+    Step1 --> Ctx
+    Step2 --> Ctx
+    Step3 --> Ctx
+    AW --> WF
+    Func --> Tools
+    ReAct --> Tools
+    Func --> Mem
+    ReAct --> Mem
+    WF --> OI --> LC
+    LIE --> LC

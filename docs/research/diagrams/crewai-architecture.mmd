@@ -1,0 +1,52 @@
+%% CrewAI architecture (Crews + Flows)
+flowchart TB
+    subgraph Flows["CrewAI Flows (production orchestration)"]
+        Start["@start"]
+        Listen["@listen"]
+        Router["@router"]
+        State["Pydantic state"]
+    end
+
+    subgraph CrewLayer["Crew (collaborative agents)"]
+        Process{Process:\nsequential / hierarchical}
+        Manager["Manager LLM\n(hierarchical)"]
+        AgentA["Agent A\nrole · goal · backstory"]
+        AgentB["Agent B"]
+        AgentC["Agent C"]
+        TaskA["Task A"]
+        TaskB["Task B"]
+        TaskC["Task C"]
+    end
+
+    subgraph Tooling["Tools"]
+        BaseTool["BaseTool subclasses"]
+        LCTools["LangChain tools"]
+        MCP["MCP tools"]
+    end
+
+    subgraph Mem["Memory"]
+        Short["Short-term"]
+        Long["Long-term (mem0)"]
+        Entity["Entity memory"]
+        Cache["Tool cache"]
+    end
+
+    subgraph Ops["Ops"]
+        OpenLIT["OpenLIT / Langfuse / AgentOps"]
+        Studio["Crew Studio"]
+        Enterprise["Crew Enterprise\n(managed runtime, RBAC, dashboards)"]
+    end
+
+    Start --> Listen --> Router --> CrewLayer
+    Router --> Listen
+    CrewLayer --> Process
+    Process --> Manager
+    Manager --> AgentA & AgentB & AgentC
+    AgentA --> TaskA --> AgentB --> TaskB --> AgentC --> TaskC
+    AgentA --> Tooling
+    AgentB --> Tooling
+    AgentC --> Tooling
+    CrewLayer --> Mem
+    CrewLayer --> Ops
+    Ops --> Studio
+    Ops --> Enterprise

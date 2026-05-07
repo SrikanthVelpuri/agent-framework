@@ -1,0 +1,33 @@
+%% OpenAI Agents SDK
+flowchart LR
+    subgraph Build["Build"]
+        Agent["Agent(name, instructions,\ntools, handoffs, guardrails)"]
+        Tools["@function_tool\nhosted tools\nMCP\nagents-as-tools"]
+        Guard["Guardrails (parallel checks)"]
+        Session["Session"]
+    end
+
+    subgraph Run["Runner loop"]
+        Model["Model call (Responses API)"]
+        ToolCalls["Tool call execution"]
+        Handoff["Handoff to specialist agent"]
+        Approval["Approval / interrupt"]
+        Done["Final output"]
+    end
+
+    subgraph Trace["Tracing"]
+        Spans["Spans: model · tool · handoff · guardrail"]
+        Dash["OpenAI Traces dashboard"]
+        Exporters["Exporters: Logfire · Langfuse · Phoenix · Datadog · OTel"]
+    end
+
+    Agent --> Run
+    Tools --> Run
+    Guard --> Run
+    Session --> Run
+    Model --> ToolCalls --> Model
+    Model --> Handoff --> Model
+    Model --> Approval --> Model
+    Model --> Done
+    Run --> Spans --> Dash
+    Spans --> Exporters

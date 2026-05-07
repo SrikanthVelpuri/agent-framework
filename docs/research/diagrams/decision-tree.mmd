@@ -1,0 +1,19 @@
+%% Decision tree — pick an agent framework
+flowchart TD
+    A[New agent project] --> B{Need .NET?}
+    B -- Yes --> C[MAF or Semantic Kernel\nPrefer MAF for new builds]
+    B -- No --> D{Need durable graph workflows + HITL?}
+    D -- Yes --> E{Already in LangChain / LangSmith?}
+    E -- Yes --> F[LangGraph]
+    E -- No --> G[MAF Python or LangGraph\nMAF if Azure-anchored]
+    D -- No --> H{Multi-agent pattern important?}
+    H -- Yes --> I{Research / experimental?}
+    I -- Yes --> J[AutoGen 0.4]
+    I -- No --> K{Role-based simple?}
+    K -- Yes --> L[CrewAI]
+    K -- No --> M[OpenAI Agents SDK or MAF]
+    H -- No --> N{RAG-heavy?}
+    N -- Yes --> O{Pipeline-strict / Apache 2.0?}
+    O -- Yes --> P[Haystack]
+    O -- No --> Q[LlamaIndex AgentWorkflow]
+    N -- No --> R[OpenAI Agents SDK or Pydantic AI]

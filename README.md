@@ -100,6 +100,27 @@ dotnet add package Azure.Identity
 - **[Migration from Semantic Kernel](https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-semantic-kernel)** - Guide to migrate from Semantic Kernel
 - **[Migration from AutoGen](https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen)** - Guide to migrate from AutoGen
 
+#### Open-Source Agent Frameworks &mdash; Deep Dive &amp; Interview Prep
+
+A senior architect's research note comparing Microsoft Agent Framework with AutoGen, Semantic Kernel, LangGraph, CrewAI, OpenAI Agents SDK, LlamaIndex, Haystack, AutoGPT, Pydantic AI, Smolagents, Letta, MetaGPT and Google ADK &mdash; with mermaid architecture diagrams, comparison matrix, decision tree, learning path, and an interview-prep Q&amp;A.
+
+- **GitHub Pages site** (after enabling Pages from `/docs` &mdash; see below): <https://srikanthvelpuri.github.io/agent-framework/research/site/>
+- **Markdown report:** [`docs/research/open-source-agent-frameworks.md`](./docs/research/open-source-agent-frameworks.md)
+- **Static HTML (self-contained, also works locally):** [`docs/research/site/index.html`](./docs/research/site/index.html)
+- **Mermaid diagram sources:** [`docs/research/diagrams/`](./docs/research/diagrams/)
+
+> **To enable the GitHub Pages site:** in your fork, go to `Settings → Pages`, set *Source* to `Deploy from a branch`, *Branch* to `main` (or your working branch), and *Folder* to `/docs`. The page will be served at `https://<your-user>.github.io/agent-framework/research/site/`.
+
+#### From AutoGen to Microsoft Agent Framework &mdash; Evolution, Trade-offs &amp; Interview Prep
+
+A separate Jekyll-ready GitHub Pages site that traces how Microsoft AutoGen evolved into Microsoft Agent Framework — verified history (Aug 2023 paper → Jan 2025 v0.4 → Oct 2025 MAF preview → Apr 2026 MAF 1.0 GA), engineering trade-offs, enterprise platform lessons, system-design exercises, and a deep interview-prep workbook (3-altitude answers, story bank, spaced-repetition flashcards, full mock-interview transcripts, novel storytelling formats).
+
+- **Site folder:** [`autogen-to-agent-framework/`](./autogen-to-agent-framework/)
+- **Start here:** [`autogen-to-agent-framework/index.md`](./autogen-to-agent-framework/index.md)
+- **Interview prep:** [interview-questions](./autogen-to-agent-framework/interview-questions.md) · [follow-up chains](./autogen-to-agent-framework/follow-up-questions.md) · [flashcards](./autogen-to-agent-framework/flashcards.md) · [mock interviews](./autogen-to-agent-framework/mock-interviews.md)
+- **Storytelling toolkit:** [`storytelling-toolkit.md`](./autogen-to-agent-framework/storytelling-toolkit.md)
+- **Build / publish:** see the folder's [`README.md`](./autogen-to-agent-framework/README.md) for `bundle exec jekyll serve` and Pages publishing instructions.
+
 ### Quickstart
 
 #### Basic Agent - Python

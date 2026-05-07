@@ -1,0 +1,40 @@
+theme: minima
+title: From AutoGen to Microsoft Agent Framework
+description: Evolution, architecture, mistakes, trade-offs, and lessons from Microsoft AutoGen to Microsoft Agent Framework.
+markdown: kramdown
+plugins:
+  - jekyll-relative-links
+  - jekyll-seo-tag
+relative_links:
+  enabled: true
+  collections: true
+include:
+  - "*.md"
+defaults:
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: default
+header_pages:
+  - evolution-timeline.md
+  - autogen-origin.md
+  - autogen-architecture.md
+  - what-autogen-got-right.md
+  - autogen-roadblocks.md
+  - mistakes-and-lessons.md
+  - tradeoffs.md
+  - why-agent-framework.md
+  - agent-framework-architecture.md
+  - autogen-vs-agent-framework.md
+  - migration-thinking.md
+  - enterprise-agent-platform-lessons.md
+  - system-design-lessons.md
+  - interview-questions.md
+  - follow-up-questions.md
+  - deep-dive-scenarios.md
+  - storytelling-toolkit.md
+  - interview-mastery.md
+  - flashcards.md
+  - mock-interviews.md
+  - references.md

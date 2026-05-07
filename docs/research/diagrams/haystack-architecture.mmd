@@ -1,0 +1,38 @@
+%% Haystack 2.x Agent + Pipeline architecture
+flowchart LR
+    subgraph Pipeline["Pipeline (typed DAG with branches & loops)"]
+        Retriever["Retriever"]
+        Reranker["Reranker"]
+        Prompt["PromptBuilder"]
+        Gen["ChatGenerator"]
+        Agent["Agent component\n(LLM loop + ToolInvoker)"]
+        Sub["Sub-pipelines as ComponentTool"]
+    end
+
+    subgraph ToolLayer["Tools"]
+        Func["@tool functions"]
+        Comp["ComponentTool"]
+        MCP["MCP / OpenAPI tools"]
+    end
+
+    subgraph Stores["Document & memory stores"]
+        Elastic["Elasticsearch / OpenSearch"]
+        Qdrant["Qdrant / Weaviate / pgvector"]
+        Mongo["MongoDB Atlas"]
+        Memory["Conversation memory"]
+    end
+
+    subgraph Ops["Ops"]
+        OTel["OpenTelemetry"]
+        Studio["deepset Studio"]
+        Cloud["deepset Cloud"]
+        Eval["haystack-eval"]
+    end
+
+    Retriever --> Reranker --> Prompt --> Gen --> Agent
+    Agent --> ToolLayer --> Agent
+    Agent --> Sub
+    Retriever --> Stores
+    Memory --> Agent
+    Pipeline --> OTel --> Studio --> Cloud
+    Pipeline --> Eval
