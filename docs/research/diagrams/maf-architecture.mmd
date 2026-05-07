@@ -1,0 +1,56 @@
+%% Microsoft Agent Framework (MAF) — high-level architecture
+flowchart TB
+    subgraph App["Host application (.NET / Python)"]
+        UI["Front-end adapters\n(AG-UI, CopilotKit, ChatKit, DevUI)"]
+        Host["Host process\n(ASP.NET Core / FastAPI / Foundry-hosted)"]
+    end
+
+    subgraph Core["MAF Core abstractions"]
+        Agent["AIAgent\n(ChatAgent, OpenAI / Azure / Foundry / Anthropic / Bedrock / Ollama clients)"]
+        Thread["AgentThread\n(per-conversation state)"]
+        Middleware["Middleware pipeline\n(telemetry, retries, redaction, security)"]
+        Tools["Tools\nFunctions · MCP · OpenAPI · Foundry hosted tools"]
+        Skills["Skills\n(domain knowledge bundles)"]
+        Memory["Memory providers\n(Foundry, Redis, custom IMemory)"]
+    end
+
+    subgraph WF["Workflows"]
+        Builder["WorkflowBuilder"]
+        Executors["Executors\n(typed nodes)"]
+        Edges["Edges\n(static / conditional / handoff)"]
+        Patterns["Patterns\nSequential · Concurrent · Handoff · Group · Magentic"]
+        Checkpoint["Checkpointer\n(durable state, resume, time-travel)"]
+        ReqInfo["RequestInfoExecutor\n(HITL pause / resume)"]
+    end
+
+    subgraph Obs["Observability & Eval"]
+        OTel["OpenTelemetry\nspans + metrics"]
+        DevUI["DevUI\nlocal debugger"]
+        Eval["Foundry Evaluations\nAF Labs benchmarks"]
+    end
+
+    subgraph Deploy["Deployment surfaces"]
+        Local["Local dev"]
+        Foundry["Foundry-hosted agents"]
+        Container["Azure Container Apps / AKS / any cloud"]
+        Harness["Agent Harness\n(shell / file / messaging loops)"]
+    end
+
+    UI --> Host --> Agent
+    Agent --> Middleware --> Tools
+    Agent --> Memory
+    Agent --> Skills
+    Agent --> Thread
+    Agent --> WF
+    Builder --> Executors --> Edges --> Patterns
+    Patterns --> Checkpoint
+    Patterns --> ReqInfo
+    ReqInfo --> UI
+    Agent --> OTel
+    WF --> OTel
+    OTel --> DevUI
+    OTel --> Eval
+    Host --> Local
+    Host --> Foundry
+    Host --> Container
+    Host --> Harness

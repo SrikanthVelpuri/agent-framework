@@ -1,0 +1,49 @@
+%% LangGraph architecture
+flowchart LR
+    subgraph Build["Build time"]
+        Schema["State schema\nTypedDict + reducers"]
+        Nodes["Nodes\n(Python functions)"]
+        Edges["Edges\nstatic + conditional"]
+        Compile["StateGraph.compile(checkpointer=…)"]
+    end
+
+    subgraph Run["Runtime"]
+        Invoke["graph.invoke / stream\n(thread_id)"]
+        Step["Per-step execution"]
+        Reducer["Reducer merge"]
+        Interrupt["interrupt() pause"]
+        Resume["Command(resume=…)"]
+    end
+
+    subgraph Persist["Persistence"]
+        Memo["MemorySaver"]
+        Sqlite["SqliteSaver"]
+        Postgres["PostgresSaver"]
+        Bedrock["AWS Bedrock Sessions"]
+        Store["BaseStore (cross-thread memory)"]
+    end
+
+    subgraph Obs["Observability + Eval"]
+        LangSmith["LangSmith traces + datasets + evals"]
+        Studio["LangGraph Studio (visualizer + HITL UI)"]
+    end
+
+    subgraph Deploy["Deployment"]
+        Self["Self-host"]
+        Platform["LangGraph Platform\n(managed runtime, queues, cron)"]
+    end
+
+    Schema --> Compile
+    Nodes --> Compile
+    Edges --> Compile
+    Compile --> Invoke --> Step --> Reducer --> Step
+    Step --> Interrupt --> Resume --> Step
+    Step --> Memo
+    Step --> Sqlite
+    Step --> Postgres
+    Step --> Bedrock
+    Step --> Store
+    Step --> LangSmith
+    Compile --> Studio
+    Compile --> Self
+    Compile --> Platform
