@@ -361,6 +361,13 @@
     </table>
     </div>
 
+    <h4>Interview questions &mdash; Summary table</h4>
+    <details class="qa"><summary>Looking only at the table, which frameworks are credible for a Microsoft-shop production deployment in 2026?</summary><div class="answer"><p>MAF first (.NET parity, Foundry hosting, durable workflows, native HITL, OTel-native, GA 1.0). Semantic Kernel as a still-supported alternative if already in production. AutoGen for research/prototyping. LangGraph as the strongest non-Microsoft cross-cutting alternative.</p></div></details>
+    <details class="qa"><summary>Which frameworks combine durable workflow checkpointing AND first-class HITL?</summary><div class="answer"><p>Only MAF and LangGraph (and SK Process Framework as a state-machine variant). Everything else either has weak persistence or DIY HITL.</p></div></details>
+    <details class="qa"><summary>Which frameworks are language-portable beyond Python?</summary><div class="answer"><p>MAF (Python + .NET), Semantic Kernel (.NET + Python + Java), LangGraph (Python + JS/TS), OpenAI Agents SDK (Python + TS), LlamaIndex (Python + TS), Letta (Python + TS), Google ADK (Python + Java).</p></div></details>
+    <details class="qa"><summary>Which frameworks ship a managed runtime in addition to the OSS library?</summary><div class="answer"><p>MAF (Foundry-hosted), LangGraph (LangGraph Platform), CrewAI (Crew Enterprise), LlamaIndex (Llama Cloud), Haystack (deepset Cloud), Letta (Letta Cloud), AutoGPT (AutoGPT Platform), Google ADK (Vertex Agent Engine). OpenAI Agents SDK and Pydantic AI deliberately ship library-only.</p></div></details>
+    <details class="qa"><summary>If license matters (Apache 2.0 over MIT), what are your options?</summary><div class="answer"><p>Haystack, Smolagents, Letta, Google ADK. Everything else here is MIT (or Polyform Shield in the case of AutoGPT Platform).</p></div></details>
+
     <hr />
 
     <!-- =========================== FRAMEWORKS ============================ -->
@@ -399,6 +406,14 @@
        <strong>Cons.</strong> API churn (0.2 &rarr; 0.4); no native durable workflow / time-travel; production deployment is DIY; .NET community-only.</p>
     <p><strong>vs MAF.</strong> AutoGen is the <em>research</em> lineage; MAF is the <em>production</em> lineage with same agent ergonomics plus typed graph workflows, checkpointing, hosting, and .NET parity.</p>
 
+    <h4>Interview questions &mdash; AutoGen</h4>
+    <details class="qa"><summary>Walk me through AutoGen v0.4's three layers and what each is for.</summary><div class="answer"><p>Core (event-driven actor runtime, async messaging, single-process or distributed gRPC), AgentChat (conversational high-level API: AssistantAgent / UserProxyAgent / RoundRobin / Selector / Swarm / Magentic), Extensions (model clients, code executors, tools, memory). Studio + Bench sit above AgentChat.</p></div></details>
+    <details class="qa"><summary>When do you pick <code>SelectorGroupChat</code> vs <code>Swarm</code> vs <code>MagenticOneGroupChat</code>?</summary><div class="answer"><p>Selector when an LLM should pick the next speaker in an open conversation; Swarm when specialist agents own the conversation and explicitly hand off; Magentic when you need a planner/orchestrator with a task ledger and progress tracking for long open-ended goals.</p></div></details>
+    <details class="qa"><summary>How does AutoGen handle code execution safely?</summary><div class="answer"><p>Through pluggable <code>CodeExecutor</code>s &mdash; <code>DockerCommandLineCodeExecutor</code>, <code>JupyterCodeExecutor</code>, <code>AzureContainerCodeExecutor</code>. Each runs in an isolated container/kernel with no host filesystem access; egress can be locked down; results stream back as <code>CodeResult</code> messages.</p></div></details>
+    <details class="qa"><summary>A team says "we love AutoGen but need production durability and HITL." What do you recommend?</summary><div class="answer"><p>Migrate to MAF: same agent feel plus typed graph workflows, durable checkpointer, time-travel, <code>RequestInfoExecutor</code> HITL, .NET parity, OTel-native, and Foundry-hosted runtime. Use Microsoft's official migration guide; run both side-by-side and diff traces.</p></div></details>
+    <details class="qa"><summary>How do you prevent runaway loops in an AutoGen group chat?</summary><div class="answer"><p>Use <code>MaxMessageTermination</code>, <code>TextMentionTermination</code>, structured "DONE" flags, per-thread token/cost budgets, and Magentic-style progress ledgers that detect no-progress and either replan or escalate to <code>UserProxyAgent</code>.</p></div></details>
+    <details class="qa"><summary>How is <code>UserProxyAgent</code> actually used for HITL?</summary><div class="answer"><p>Treat it as a peer agent that, instead of calling an LLM, calls an <code>input_func</code> (CLI / web / Slack). It can also auto-execute code blocks. Termination conditions can target the human's reply.</p></div></details>
+
     <h3 id="fw-maf">2.2 Microsoft Agent Framework (MAF) <a class="anchor" href="#fw-maf">#</a></h3>
     <p><span class="badge blue">Repo</span> <a href="https://github.com/microsoft/agent-framework">microsoft/agent-framework</a>
        &nbsp;·&nbsp; <span class="badge">Docs</span> <a href="https://learn.microsoft.com/en-us/agent-framework/">learn.microsoft.com/agent-framework</a>
@@ -424,12 +439,29 @@
     <p><strong>Pros.</strong> True .NET + Python parity; graph workflows with durability/checkpointing/time-travel/HITL; provider-agnostic; DevUI; clean OTel.<br />
        <strong>Cons.</strong> Younger community; some preview features still moving; steeper than CrewAI for newcomers.</p>
 
+    <h4>Interview questions &mdash; Microsoft Agent Framework</h4>
+    <details class="qa"><summary>What are MAF's core building blocks?</summary><div class="answer"><p><code>AIAgent</code>, tools (functions / MCP / OpenAPI / Foundry-hosted), middleware, <code>AgentThread</code>, <code>IMemory</code>, Skills, Workflows (<code>Workflow</code>/<code>Executor</code>/<code>Edge</code>/<code>WorkflowBuilder</code>), hosting surfaces, DevUI, and front-end adapters.</p></div></details>
+    <details class="qa"><summary>What is <code>RequestInfoExecutor</code> and why is it important?</summary><div class="answer"><p>A workflow node that pauses execution, persists a checkpoint, and emits a typed <code>RequestInfo</code> event to the host. The host (UI, Slack, ticketing system) returns a <code>RespondInfo</code> that resumes the workflow at the same checkpoint. This is how MAF gets first-class HITL without bolting it onto a chat loop.</p></div></details>
+    <details class="qa"><summary>What's the difference between an <code>AIAgent</code> and a workflow <code>Executor</code>?</summary><div class="answer"><p>An <code>AIAgent</code> is an LLM-driven actor with tools, memory and instructions. An <code>Executor</code> is a typed node in a graph workflow &mdash; it can wrap an agent, a deterministic function, a HITL pause, or a sub-workflow. Workflows compose executors; agents are one kind of executor.</p></div></details>
+    <details class="qa"><summary>Walk me through deploying to Foundry-hosted agents.</summary><div class="answer"><p>Build the agent or workflow locally; add <code>.WithFoundryHosting(...)</code> (.NET) or the Python equivalent; configure your project endpoint and identity; the framework pushes the agent definition to Foundry, which provisions managed compute, autoscale, networking, identity (Entra), telemetry (App Insights) and policy controls.</p></div></details>
+    <details class="qa"><summary>How does MAF stay provider-agnostic?</summary><div class="answer"><p>Through <code>Microsoft.Extensions.AI.IChatClient</code> (and the Python protocol equivalent). Concrete implementations exist for Foundry, Azure OpenAI, OpenAI, Anthropic, Bedrock, Ollama, GitHub Copilot SDK and Claude Code SDK; swapping providers is a configuration change.</p></div></details>
+    <details class="qa"><summary>Which MAF features are GA in 1.0 vs preview?</summary><div class="answer"><p><strong>GA / LTS:</strong> agents, workflows, memory, middleware, orchestration patterns, checkpointing, OTel observability, declarative YAML agents.<br /><strong>Preview:</strong> DevUI, Foundry-hosted agents, Foundry-backed memory and tools, evaluations, AG-UI / CopilotKit / ChatKit adapters, reusable Skills, Copilot/Claude Code SDK integration, Agent Harness.</p></div></details>
+    <details class="qa"><summary>How would you migrate an AutoGen 0.4 group chat to MAF?</summary><div class="answer"><p>Map <code>AssistantAgent</code> &rarr; <code>AIAgent</code>; replace <code>SelectorGroupChat</code> with the MAF group-chat workflow pattern (or a typed handoff graph); replace <code>UserProxyAgent</code> with <code>RequestInfoExecutor</code> plus a CopilotKit/AG-UI adapter; map memory provider to <code>IMemory</code>; turn on OTel + DevUI to verify behavioural parity; add a checkpointer for durability.</p></div></details>
+    <details class="qa"><summary>How does MAF observability work end-to-end?</summary><div class="answer"><p>Native OpenTelemetry spans for <code>agent.run</code>, <code>llm.call</code>, <code>tool.call</code>, <code>executor</code>, <code>workflow.event</code>, <code>request_info</code>. Attributes follow the GenAI semantic conventions (model, tokens, cost, tool name, redacted args, thread_id). Spans flow to App Insights / Jaeger / Honeycomb / Phoenix / Langfuse / DevUI.</p></div></details>
+
     <h3 id="fw-sk">2.3 Semantic Kernel <a class="anchor" href="#fw-sk">#</a></h3>
     <p><span class="badge blue">Repo</span> <a href="https://github.com/microsoft/semantic-kernel">microsoft/semantic-kernel</a>
        &nbsp;·&nbsp; <span class="badge">Docs</span> <a href="https://learn.microsoft.com/en-us/semantic-kernel/">learn.microsoft.com/semantic-kernel</a></p>
     <p><strong>Problem.</strong> Microsoft's first-generation "AI orchestration SDK": LLM functions as plugins inside a <code>Kernel</code>, planners and chat-completion agents that fit into existing C# / Python / Java apps.</p>
     <p><strong>Highlights.</strong> Plugins / connectors / filters; <em>Process Framework</em> (state-machine workflows); <em>Agent Framework</em> in SK is the lineage that became MAF.</p>
     <p><strong>Status.</strong> Mature; in <strong>convergence mode</strong>. SK as a Kernel/plugin SDK remains supported; agent-specific APIs are guided to MAF. New projects should start on MAF unless tied to SK Process Framework.</p>
+
+    <h4>Interview questions &mdash; Semantic Kernel</h4>
+    <details class="qa"><summary>What problem did Semantic Kernel originally solve?</summary><div class="answer"><p>A polyglot (.NET / Python / Java) DI-friendly orchestration SDK that treats LLM functions as plugins inside a <code>Kernel</code>, plus connectors and planners &mdash; designed to drop into existing enterprise apps rather than imposing a new runtime.</p></div></details>
+    <details class="qa"><summary>What is the SK Process Framework and when use it over a MAF Workflow?</summary><div class="answer"><p>Process Framework models long-running business processes as state machines with steps, events, parallel branches and retries. It predates MAF Workflows and remains the right choice when you already have SK in production and your model is <em>process state machine</em> rather than <em>agent graph</em>. New projects with HITL + durable agent graphs should prefer MAF Workflows.</p></div></details>
+    <details class="qa"><summary>How are SK plugins different from MAF tools?</summary><div class="answer"><p>Plugins are collections of <code>KernelFunction</code>s (native code or prompt templates) registered with the <code>Kernel</code> &mdash; first-class <code>KernelArguments</code>, prompt-template functions, and DI integration. MAF tools are <code>AIFunction</code>/Python <code>@ai_function</code> callables registered with an agent; simpler surface, but tools can also be MCP, OpenAPI, or Foundry-hosted.</p></div></details>
+    <details class="qa"><summary>How are SK filters different from MAF middleware?</summary><div class="answer"><p>SK filters are sync/async hooks around prompt rendering and function invocation &mdash; good for redaction, telemetry, retries inside a <code>Kernel</code> call. MAF middleware sits around the agent run and tool call lifecycle and is composable across the workflow. Same intent, different scope.</p></div></details>
+    <details class="qa"><summary>When should a team migrate from SK Agent Framework to MAF?</summary><div class="answer"><p>When they need durable graph workflows, time-travel, native HITL primitives, .NET + Python parity for agents, or Foundry-hosted runtime. SK as a Kernel/plugin SDK can still coexist.</p></div></details>
 
     <h3 id="fw-langgraph">2.4 LangGraph <a class="anchor" href="#fw-langgraph">#</a></h3>
     <p><span class="badge blue">Repo</span> <a href="https://github.com/langchain-ai/langgraph">langchain-ai/langgraph</a>
@@ -441,6 +473,15 @@
        <strong>Cons.</strong> Best inside LangChain ecosystem; reducer schema feels heavy at first.</p>
     <p><strong>vs MAF.</strong> Closest peer. MAF wins on .NET parity, Foundry hosting, declarative agents and Microsoft ecosystem; LangGraph wins on community size and LangSmith.</p>
 
+    <h4>Interview questions &mdash; LangGraph</h4>
+    <details class="qa"><summary>Explain reducers in <code>StateGraph</code>.</summary><div class="answer"><p>State is a <code>TypedDict</code> whose fields are <code>Annotated[T, reducer]</code>. After each node returns a partial update, the runtime applies the reducer to merge it into the current state (e.g., <code>add</code> for list concatenation, <code>operator.or_</code> for set union, custom for typed merges). Reducers prevent overwrite races and let multiple nodes update the same field safely.</p></div></details>
+    <details class="qa"><summary>How does <code>interrupt()</code> actually work?</summary><div class="answer"><p>The runtime raises a special exception carrying a payload; the graph's checkpoint at that step is persisted. The host catches the value, asks the human, then resumes via <code>graph.invoke(..., Command(resume=value))</code> which seeks to the checkpoint and continues with the human input merged into state.</p></div></details>
+    <details class="qa"><summary><code>MemorySaver</code> vs <code>SqliteSaver</code> vs <code>PostgresSaver</code> vs <code>BaseStore</code> &mdash; when each?</summary><div class="answer"><p><code>MemorySaver</code> for tests and local dev. <code>SqliteSaver</code> for single-process apps with simple persistence. <code>PostgresSaver</code> for production with multiple workers and horizontal scale. <code>BaseStore</code> (separate from checkpointers) for cross-thread long-term memory (user preferences, KB).</p></div></details>
+    <details class="qa"><summary>Supervisor vs Swarm packages &mdash; which when?</summary><div class="answer"><p><code>langgraph-supervisor</code> for one-coordinator-many-workers (research writer, support orchestrator). <code>langgraph-swarm</code> for peer-to-peer handoffs where the "right" specialist owns the conversation (multi-domain triage).</p></div></details>
+    <details class="qa"><summary>How does LangSmith integrate with LangGraph?</summary><div class="answer"><p>The LangChain runtime auto-emits traces to LangSmith including the per-step state delta, model call, and tool call; you can attach datasets, run regression evals, and replay any trace. LangSmith's UI is graph-aware so you can see the same nodes you built.</p></div></details>
+    <details class="qa"><summary>When should you reach for Temporal instead of LangGraph?</summary><div class="answer"><p>When workflows can run for days/weeks with cross-system side effects, exactly-once guarantees, complex retry/backoff matrices, and you need the operations team to manage the runtime. Pattern: keep agent reasoning inside LangGraph; orchestrate the surrounding business workflow in Temporal.</p></div></details>
+    <details class="qa"><summary>How is LangGraph different from old-style LangChain <code>AgentExecutor</code>?</summary><div class="answer"><p><code>AgentExecutor</code> was an opaque ReAct loop with no first-class state, persistence, or HITL. LangGraph exposes the loop as an explicit graph you control, persists every step, supports interrupts, and is the recommended replacement.</p></div></details>
+
     <h3 id="fw-crewai">2.5 CrewAI <a class="anchor" href="#fw-crewai">#</a></h3>
     <p><span class="badge blue">Repo</span> <a href="https://github.com/crewAIInc/crewAI">crewAIInc/crewAI</a>
        &nbsp;·&nbsp; <span class="badge">Docs</span> <a href="https://docs.crewai.com/">docs.crewai.com</a></p>
@@ -449,6 +490,13 @@
     <p><strong>Pros.</strong> Lowest friction for role-based multi-agent; great for business teams; Flows give production-ish layer.<br />
        <strong>Cons.</strong> Less control over LLM cost/latency; emergent failure modes.</p>
 
+    <h4>Interview questions &mdash; CrewAI</h4>
+    <details class="qa"><summary>Crews vs Flows &mdash; when use which?</summary><div class="answer"><p>Crews for autonomous, role-based collaboration where agents decide who delegates and how (research, content, marketing). Flows for production pipelines that need event-driven, deterministic structure with state, conditional logic and triggers. Most real systems compose them: a Flow orchestrates one or more Crews.</p></div></details>
+    <details class="qa"><summary>How does the hierarchical <code>Process</code> work?</summary><div class="answer"><p>A manager LLM is given the list of agents and tasks; for each task it picks the best-suited agent, dispatches, observes output, and either accepts or routes for revision &mdash; like an LLM-driven foreman.</p></div></details>
+    <details class="qa"><summary>What memory layers does CrewAI provide?</summary><div class="answer"><p>Short-term (current run), long-term (across runs, default mem0-backed), entity memory (per-entity facts), and a tool cache (deterministic tool re-runs). Per-crew and per-agent.</p></div></details>
+    <details class="qa"><summary>How would you scale CrewAI to many concurrent users?</summary><div class="answer"><p>Run each <code>kickoff</code> in a stateless worker (FastAPI / Celery / Cloud Run); externalise memory (mem0 / Redis); cap tools and tokens per task; add Langfuse/OpenLIT tracing; for production guarantees consider wrapping the Flow in Temporal or moving the orchestration to LangGraph/MAF.</p></div></details>
+    <details class="qa"><summary>What are CrewAI's limitations to be aware of?</summary><div class="answer"><p>Loose reasoning traces, less control over LLM cost/latency than graph frameworks, hierarchical process can over-rely on the manager LLM, and durability/checkpointing is partial. Mitigate with budget guardrails and explicit Flows.</p></div></details>
+
     <h3 id="fw-openai">2.6 OpenAI Agents SDK <a class="anchor" href="#fw-openai">#</a></h3>
     <p><span class="badge blue">Repo</span> <a href="https://github.com/openai/openai-agents-python">openai-agents-python</a> /
        <a href="https://github.com/openai/openai-agents-js">openai-agents-js</a></p>
@@ -456,11 +504,26 @@
     <p><strong>Pros.</strong> Minimal, ergonomic, great handoffs/guardrails/tracing; provider-agnostic; TS parity.<br />
        <strong>Cons.</strong> No graph workflow; no durable runtime; hosted tracing is OpenAI by default.</p>
 
+    <h4>Interview questions &mdash; OpenAI Agents SDK</h4>
+    <details class="qa"><summary>How are handoffs implemented under the hood?</summary><div class="answer"><p>Each handoff is exposed to the LLM as a tool whose schema represents "transfer control to agent X". When the model calls it, the runner switches the active agent and feeds the conversation forward; optional <code>input_filter</code>s strip or transform context before the next agent sees it.</p></div></details>
+    <details class="qa"><summary>What is a guardrail and when does it run?</summary><div class="answer"><p>An async function that runs <em>in parallel</em> with the agent step. It returns <code>tripwire=True</code> to halt execution. Input guardrails run on user input; output guardrails run on agent output; tool guardrails run around tool calls. They fail-fast and never block the happy path.</p></div></details>
+    <details class="qa"><summary>How does <code>Sessions</code> work?</summary><div class="answer"><p>Sessions persist conversation state (thread of messages, tool results) outside the runner, keyed by an ID. Restart the process or move to another worker &mdash; passing the same <code>session</code> resumes the conversation.</p></div></details>
+    <details class="qa"><summary>Compare agents-as-tools with handoffs.</summary><div class="answer"><p>Agents-as-tools: parent retains control, calls a child agent like a function and synthesises the reply. Handoffs: control transfers entirely. Pick agents-as-tools for orchestrator/specialist; pick handoffs for triage/routing.</p></div></details>
+    <details class="qa"><summary>What does the tracing dashboard show?</summary><div class="answer"><p>Per-run: spans for each model call, tool call, handoff, and guardrail; inputs/outputs, latency, and costs. Pluggable trace processors export the same spans to Logfire / Langfuse / Phoenix / Datadog or any OTel backend.</p></div></details>
+    <details class="qa"><summary>What's missing from OpenAI Agents SDK that LangGraph/MAF provide?</summary><div class="answer"><p>A graph workflow engine, durable checkpointing, time-travel, typed multi-step state, and a managed runtime &mdash; by design. For complex flows, embed the SDK inside Temporal/LangGraph/MAF.</p></div></details>
+
     <h3 id="fw-llamaindex">2.7 LlamaIndex Workflows / AgentWorkflow <a class="anchor" href="#fw-llamaindex">#</a></h3>
     <p><span class="badge blue">Repo</span> <a href="https://github.com/run-llama/llama_index">run-llama/llama_index</a></p>
     <p><strong>Architecture.</strong> Event-driven <code>Workflow</code> with <code>@step</code> handlers reacting to events on a shared <code>Context</code>. <code>AgentWorkflow</code> orchestrates <code>FunctionAgent</code> / <code>ReActAgent</code> with handoffs.</p>
     <p><strong>Pros.</strong> Best RAG integration of any agent framework; clean event semantics.<br />
        <strong>Cons.</strong> Smaller multi-agent pattern catalogue; primarily Python.</p>
+
+    <h4>Interview questions &mdash; LlamaIndex AgentWorkflow</h4>
+    <details class="qa"><summary>How is LlamaIndex Workflow different from LangGraph StateGraph?</summary><div class="answer"><p>Workflow is event-driven: <code>@step</code> handlers consume events and emit new events; the framework dispatches by event type. StateGraph is node/edge with reducers over a typed state. Both are graph engines; events feel more natural for streaming and pub/sub-style flows, state graphs are better when "the state" is the central concept.</p></div></details>
+    <details class="qa"><summary>What is <code>Context</code> and what does it buy you?</summary><div class="answer"><p>A shared kv store + streaming sink across all steps in a workflow run. Steps read/write context for cross-step data without re-emitting events; tools also access it. It's the LlamaIndex equivalent of LangGraph's state.</p></div></details>
+    <details class="qa"><summary>How does <code>AgentWorkflow</code> do handoffs?</summary><div class="answer"><p>It takes a list of agents (with declared tools and handoffs); the orchestrator agent emits a handoff event; the workflow routes it to the named agent which then becomes the active agent for subsequent events. Context is preserved.</p></div></details>
+    <details class="qa"><summary><code>FunctionAgent</code> vs <code>ReActAgent</code> &mdash; which when?</summary><div class="answer"><p><code>FunctionAgent</code> for native function-calling models (OpenAI/Anthropic) &mdash; single tool-call message per step. <code>ReActAgent</code> for non-function-calling models or when you want the <em>thought / action / observation</em> trace explicit (text-based reasoning).</p></div></details>
+    <details class="qa"><summary>Why is LlamaIndex AgentWorkflow particularly good for RAG-heavy agents?</summary><div class="answer"><p>Tools include <code>QueryEngineTool</code>, <code>RetrieverTool</code>, and seamless integration with the LlamaIndex retrieval stack (sub-question, hierarchical, hybrid). Agents call retrieval as just another tool, but the tool can carry rich citations and structured data back through Context.</p></div></details>
 
     <h3 id="fw-haystack">2.8 Haystack Agents <a class="anchor" href="#fw-haystack">#</a></h3>
     <p><span class="badge blue">Repo</span> <a href="https://github.com/deepset-ai/haystack">deepset-ai/haystack</a>
@@ -469,6 +532,13 @@
     <p><strong>Pros.</strong> Type-safe pipelines; great retrieval; Apache 2.0; deepset Studio.<br />
        <strong>Cons.</strong> Multi-agent abstractions thinner; less "agentic" mindshare.</p>
 
+    <h4>Interview questions &mdash; Haystack</h4>
+    <details class="qa"><summary>What's the difference between <code>Tool</code>, <code>ComponentTool</code>, and the <code>@tool</code> decorator?</summary><div class="answer"><p><code>Tool</code> is the base abstraction (name, description, JSON schema, callable). <code>ComponentTool</code> wraps any Haystack component as a tool &mdash; its inputs/outputs become the schema automatically. <code>@tool</code> decorates a Python function and uses its signature + docstring. Pick <code>@tool</code> for ad-hoc functions, <code>ComponentTool</code> to expose existing pipelines as tools.</p></div></details>
+    <details class="qa"><summary>How does the <code>Agent</code> component loop work?</summary><div class="answer"><p>It feeds the system prompt + history to a <code>ChatGenerator</code>; if the response includes tool calls, it invokes them via a <code>ToolInvoker</code>, appends results to history, and re-invokes the generator until the model returns a non-tool message or termination. State is injected through the live <code>State</code> parameter.</p></div></details>
+    <details class="qa"><summary>Why pick Haystack for an Apache 2.0 stack?</summary><div class="answer"><p>Most agent frameworks are MIT, but some enterprises require Apache 2.0 for patent grant clarity. Haystack is permissive Apache 2.0 with corporate backing (deepset) and a strong retrieval pedigree.</p></div></details>
+    <details class="qa"><summary>How do branches and loops work in pipelines?</summary><div class="answer"><p>Components declare typed inputs/outputs; the pipeline DAG can fan out (multiple components consume the same output) and loop (an Agent can call itself or an upstream component again until a condition holds). Loops require explicit termination guards.</p></div></details>
+    <details class="qa"><summary>When pick Haystack over LangGraph for a RAG agent?</summary><div class="answer"><p>When you want type-safe pipelines, strong retrieval primitives, and don't need a deep multi-agent or HITL story. For pure agent + workflow + HITL, LangGraph or MAF is stronger.</p></div></details>
+
     <h3 id="fw-autogpt">2.9 AutoGPT / Forge <a class="anchor" href="#fw-autogpt">#</a></h3>
     <p>The original "give a goal, get an autonomous agent" project pivoted to:</p>
     <ul class="compact">
@@ -476,6 +546,12 @@
       <li><strong>AutoGPT Classic + Forge</strong> &mdash; original autonomous agent + SDK template. MIT.</li>
     </ul>
     <p>Now closer to a <em>product</em> than an embeddable SDK; useful as a low-code platform but not a typical embedded library choice.</p>
+
+    <h4>Interview questions &mdash; AutoGPT / Forge</h4>
+    <details class="qa"><summary>What's the relationship between AutoGPT Platform, AutoGPT Classic, and Forge?</summary><div class="answer"><p>AutoGPT Classic is the original autonomous-agent project. Forge is an SDK template for building Auto-GPT-style agents (abilities, memory, LLM abstraction). AutoGPT Platform is a newer block-graph low-code product with marketplace and credits &mdash; a different category from the original library.</p></div></details>
+    <details class="qa"><summary>Why does the Polyform Shield license matter?</summary><div class="answer"><p>It restricts commercial redistribution of AutoGPT Platform &mdash; fine for internal business use, problematic if you want to embed it in a commercial product or fork it for resale. Forge and Classic remain MIT.</p></div></details>
+    <details class="qa"><summary>Why has AutoGPT lost developer mindshare to LangGraph and MAF?</summary><div class="answer"><p>Production teams need typed graphs, durability, HITL, OTel, and managed runtime; AutoGPT's sweet spot moved to a <em>product</em> ("low-code visual builder") rather than a <em>library</em>. The original autonomous-loop pattern was inspirational but not directly productionable.</p></div></details>
+    <details class="qa"><summary>When (if ever) would you pick AutoGPT today?</summary><div class="answer"><p>When you want a low-code visual builder with a marketplace and a community of pre-built blocks for non-developers, and the Polyform license is acceptable. For embedded library use, prefer MAF / LangGraph / OpenAI Agents SDK.</p></div></details>
 
     <h3 id="fw-others">2.10 Other notable frameworks <a class="anchor" href="#fw-others">#</a></h3>
     <div class="cards">
@@ -486,6 +562,14 @@
       <div class="card"><h4>Google ADK</h4><p>Python + Java SDK: <code>LlmAgent</code>, <code>SequentialAgent</code>, <code>ParallelAgent</code>, <code>LoopAgent</code>, sessions, callbacks, A2A, Vertex AI integration.</p></div>
       <div class="card"><h4>Mastra (TS)</h4><p>TypeScript-first agent framework; nice for Node-only shops.</p></div>
     </div>
+
+    <h4>Interview questions &mdash; Other frameworks</h4>
+    <details class="qa"><summary>Why pick Pydantic AI?</summary><div class="answer"><p>When the team values type-safety, structured outputs (Pydantic models for both inputs and outputs), DI, and a "FastAPI for agents" feel &mdash; and a single-agent or light-multi-agent shape is sufficient. A2A and MCP are first-class; Logfire gives clean observability.</p></div></details>
+    <details class="qa"><summary>What's the trade-off with Smolagents' code-as-action approach?</summary><div class="answer"><p>Strong models produce solid Python; weaker models (sub-7B) introduce subtle bugs. Sandboxing is mandatory. The upside is composability &mdash; the agent can express loops, conditionals, and data manipulation as code instead of repeated tool-call rounds.</p></div></details>
+    <details class="qa"><summary>When does Letta beat building memory yourself?</summary><div class="answer"><p>When you need hierarchical, server-managed long-term memory across sessions and devices and you don't want to design eviction, archival, recall and consistency. Embed Letta as a memory backend behind a MAF or LangGraph agent.</p></div></details>
+    <details class="qa"><summary>What's MetaGPT's niche?</summary><div class="answer"><p>Generating end-to-end software artifacts (PRD, architecture, code, tests) from a single brief, by simulating a software company with role-based agents. Less flexible for general agent workflows but a reference for SOP-driven hierarchies.</p></div></details>
+    <details class="qa"><summary>How does Google ADK compare to MAF?</summary><div class="answer"><p>Strong on Google Cloud / Gemini side with <code>LlmAgent</code>, <code>SequentialAgent</code>, <code>ParallelAgent</code>, <code>LoopAgent</code>, sessions, callbacks, and Vertex AI integration. MAF wins on .NET parity and the broader provider matrix; both speak A2A and MCP for cross-vendor interop.</p></div></details>
+    <details class="qa"><summary>Why is the legacy LangChain <code>AgentExecutor</code> deprecated?</summary><div class="answer"><p>It hides state, has no first-class HITL, no checkpointing, and a confusing failure model. LangGraph replaces it with explicit graphs, persistence, and interrupts.</p></div></details>
 
     <hr />
 
@@ -779,6 +863,13 @@ flowchart LR
     Memory --> Agent
     </pre>
 
+    <h4>Interview questions &mdash; Architecture diagrams</h4>
+    <details class="qa"><summary>Trace the data flow in the MAF diagram for a single agent run with a tool call.</summary><div class="answer"><p>UI/Host &rarr; <code>AIAgent</code> &rarr; middleware &rarr; tool (function/MCP/OpenAPI/Foundry) &rarr; tool result &rarr; back through middleware &rarr; agent generates final message &rarr; <code>AgentThread</code> updated &rarr; OTel spans emitted to DevUI / observability backend.</p></div></details>
+    <details class="qa"><summary>In the AutoGen diagram, what does Core do that AgentChat doesn't?</summary><div class="answer"><p>Core provides the actor runtime (addressable agents, async messaging, topics, single-process or distributed gRPC). AgentChat is a high-level API on top: ready-made agents, group-chat patterns, and termination conditions. You can build with Core directly for novel patterns; AgentChat is the friendly default.</p></div></details>
+    <details class="qa"><summary>Why is the LangGraph diagram split into Build / Run / Persist / Observe / Deploy?</summary><div class="answer"><p>Because LangGraph's central insight is that an agent is a <em>compiled artefact</em> with explicit phases: build the graph, compile it with a checkpointer, run on threads, persist every step, observe via LangSmith, deploy self-hosted or to LangGraph Platform.</p></div></details>
+    <details class="qa"><summary>How does CrewAI's Flow layer change the picture compared to a bare Crew?</summary><div class="answer"><p>A Flow adds event-driven orchestration (start / listen / router) and Pydantic state on top of one or more Crews, so production triggers, conditional logic, and persistence wrap the autonomous-agent layer rather than living inside it.</p></div></details>
+    <details class="qa"><summary>What does the "Trace" subgraph in the OpenAI Agents SDK diagram tell you about the design philosophy?</summary><div class="answer"><p>Tracing is first-class, not bolted on &mdash; spans for model, tool, handoff and guardrail are emitted by the runner itself and exportable to any OTel backend. The framework is small but observable by default.</p></div></details>
+
     <hr />
 
     <!-- =========================== MATRIX & DECISIONS ============================ -->
@@ -854,6 +945,13 @@ flowchart TD
     N -- No --> R[OpenAI Agents SDK or Pydantic AI]
     </pre>
 
+    <h4>Interview questions &mdash; Comparison matrix &amp; decision tree</h4>
+    <details class="qa"><summary>Which capability matters most when picking a framework for a regulated enterprise (banking / healthcare)?</summary><div class="answer"><p>Durable checkpointing + HITL primitives + OTel observability + clear data residency. MAF and LangGraph are the strongest combinations; AutoGen and CrewAI need extra wiring.</p></div></details>
+    <details class="qa"><summary>Walk me through the decision tree for a Python-only team building a long-running research agent on AWS.</summary><div class="answer"><p>Need .NET? No &rarr; durable graph workflows + HITL? Yes &rarr; already in LangChain/LangSmith? Probably yes &rarr; <strong>LangGraph</strong>. If MAF was acceptable, MAF Python is also fine; the deciding factors become observability stack and team familiarity.</p></div></details>
+    <details class="qa"><summary>You inherit an AutoGen 0.2 codebase that's hitting production-durability walls. What's your recommendation?</summary><div class="answer"><p>Migrate to MAF (preferred path Microsoft publishes a guide for) or to LangGraph if the team is OSS-only. AG2 stays on the 0.2 API but doesn't solve the durability problem. AutoGen 0.4 fixes architecture but not durability.</p></div></details>
+    <details class="qa"><summary>Why does the decision tree branch on .NET first?</summary><div class="answer"><p>Because language parity is a hard constraint that knocks out most options immediately. Once .NET is required, the choice collapses to MAF or Semantic Kernel.</p></div></details>
+    <details class="qa"><summary>Defend or attack: "LangGraph and MAF are interchangeable."</summary><div class="answer"><p><strong>Defend:</strong> both are typed graph engines with checkpointing, HITL, time-travel, multi-agent patterns, OTel. <strong>Attack:</strong> MAF has true .NET parity, declarative YAML agents, Foundry-hosted runtime, and Microsoft commercial support; LangGraph has a far larger OSS community, LangSmith, and a more mature managed platform. They're peers, not interchangeable.</p></div></details>
+
     <hr />
 
     <!-- =========================== USE CASES ============================ -->
@@ -871,6 +969,13 @@ flowchart TD
       <div class="card"><h4>Code-writing agents</h4><p><strong>Smolagents</strong> or <strong>MAF Agent Harness</strong> + sandboxes; OpenAI Agents SDK + computer use as fallback.</p></div>
     </div>
 
+    <h4>Interview questions &mdash; Use-case picks</h4>
+    <details class="qa"><summary>Defend MAF over LangGraph for an internal ChatOps copilot.</summary><div class="answer"><p>.NET parity (most internal services are .NET), Foundry-hosted managed runtime + Entra/AAD integration, declarative YAML agents for review/governance, OpenTelemetry into existing App Insights, and a Microsoft commercial support path. LangGraph would still work but adds OSS-only operations.</p></div></details>
+    <details class="qa"><summary>A research lab needs to publish a multi-agent benchmark. Which framework and why?</summary><div class="answer"><p>AutoGen 0.4 + AutoGen Bench: Magentic-One and Swarm are baseline patterns reviewers recognise; AgentChat is permissive enough to express new patterns; OTel + Studio sessions make traces shareable.</p></div></details>
+    <details class="qa"><summary>A PM wants a "ChatGPT clone for our docs" yesterday. What do you ship?</summary><div class="answer"><p>OpenAI Agents SDK + a hosted file-search tool, or LlamaIndex AgentWorkflow if RAG quality matters more than throughput-to-prod. Both are days, not weeks.</p></div></details>
+    <details class="qa"><summary>A bank asks for a "loan application copilot" with multi-step approvals.</summary><div class="answer"><p>MAF or LangGraph: typed workflow + RequestInfoExecutor / interrupt for officer approvals + checkpointer for audit + OTel for observability + golden-set eval before production.</p></div></details>
+    <details class="qa"><summary>The CTO is allergic to MIT licenses. Recommend a stack.</summary><div class="answer"><p>Haystack (RAG + agent), Smolagents (code agent), Letta (memory), Google ADK (orchestration). All Apache 2.0; you give up some of MAF/LangGraph's depth but keep the licensing posture.</p></div></details>
+
     <hr />
 
     <!-- =========================== LEARNING PATH ============================ -->
@@ -884,6 +989,13 @@ flowchart TD
       <li><strong>Week 6 — RAG &amp; biz automation.</strong> Build a RAG agent with <em>LlamaIndex AgentWorkflow</em>; build a role-based crew with <em>CrewAI</em>; compare to MAF.</li>
     </ol>
     <p><strong>Capstone.</strong> Multi-agent ticketing assistant (intake → triage → research → draft → human approval → resolve), built twice (LangGraph + MAF), instrumented with OTel, evaluated on a 50-task golden set.</p>
+
+    <h4>Interview questions &mdash; Learning path</h4>
+    <details class="qa"><summary>Why start with OpenAI Agents SDK in Week 1?</summary><div class="answer"><p>Smallest surface, fastest path to a working ReAct loop with guardrails and tracing &mdash; concepts you will reuse everywhere. Avoids ecosystem-lock-in early.</p></div></details>
+    <details class="qa"><summary>Why is AutoGen Week 2 and LangGraph Week 3?</summary><div class="answer"><p>Multi-agent conversation primitives (AutoGen) teach the <em>patterns</em>; graph workflows (LangGraph) teach the <em>plumbing</em> &mdash; patterns first, plumbing after, so you can recognise what the plumbing solves.</p></div></details>
+    <details class="qa"><summary>Why dedicate a full week to MAF?</summary><div class="answer"><p>Because it's the union of agent patterns + workflow plumbing + .NET parity + production hosting; experiencing all four together is what makes the architectural picture click.</p></div></details>
+    <details class="qa"><summary>What does the capstone optimise for?</summary><div class="answer"><p>Hands-on comparison of MAF vs LangGraph on the <em>same</em> realistic problem with HITL, OTel, and an eval set &mdash; exactly the comparison senior interviews probe.</p></div></details>
+    <details class="qa"><summary>A junior asks: "should I skip ahead to MAF?" What do you say?</summary><div class="answer"><p>No. The earlier weeks build vocabulary (ReAct, handoff, group chat, reducer, checkpoint, interrupt) that MAF assumes. Skipping makes MAF feel arbitrary.</p></div></details>
 
     <hr />
 
