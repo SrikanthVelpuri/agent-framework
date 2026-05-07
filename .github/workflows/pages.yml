@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "site/**"
+      - "dashboard/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -25,7 +25,7 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: dashboard
   deploy:
     needs: build
     runs-on: ubuntu-latest

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Microsoft Agent Framework — Concept & Interview Dashboard</title>
+  <meta name="description" content="A static dashboard for browsing every ADR, design doc, and feature in the Microsoft Agent Framework, with story-driven deep dives and ladder-style interview questions." />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231f6feb'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' font-family='Inter,system-ui,sans-serif' font-size='34' fill='white' font-weight='700'%3EMA%3C/text%3E%3C/svg%3E" />
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">MA</div>
+      <div>
+        <div class="brand-title">Agent Framework — Learning &amp; Interview Dashboard</div>
+        <div class="brand-sub">Microsoft Agent Framework · ADRs · Designs · Features · Interview ladders</div>
+      </div>
+    </div>
+    <nav class="topnav">
+      <a href="#/" data-route="dashboard">Dashboard</a>
+      <a href="#/catalog" data-route="catalog">Catalog</a>
+      <a href="#/interview" data-route="interview">Interview Mode</a>
+      <a href="#/about" data-route="about">About</a>
+      <button id="themeToggle" class="ghost" title="Toggle theme">◐</button>
+    </nav>
+  </header>
+
+  <div class="search-row">
+    <input id="globalSearch" type="search" placeholder="⌘K · Search concepts, ADRs, tags, interview questions…" autocomplete="off" />
+    <div id="filterChips" class="chips"></div>
+  </div>
+
+  <main id="app"></main>
+
+  <footer class="footer">
+    <span>Built from the <code>docs/</code> tree of <a href="https://github.com/microsoft/agent-framework" target="_blank" rel="noopener">microsoft/agent-framework</a>.</span>
+    <span>Five-lens authoring · Architect · Storyteller · Hiring Manager · Staff Engineer · UX Lead</span>
+  </footer>
+
+  <!-- Templates -->
+  <template id="tpl-dashboard">
+    <section class="hero">
+      <h1>Every concept in MAF, told as a story — with an interview ladder beside it.</h1>
+      <p class="lede">
+        This dashboard is built from every Architectural Decision Record, design doc, and feature spec in the Microsoft Agent Framework
+        repository. Each concept gets a four-beat narrative, a staff-engineer failure-mode appendix, and a multi-level interview
+        ladder where every follow-up branches into deeper follow-ups — never flat flashcards.
+      </p>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="section">
+      <h2>Browse by category</h2>
+      <div id="categoryGrid" class="grid grid-cards"></div>
+    </section>
+
+    <section class="section">
+      <h2>Featured deep dives</h2>
+      <p class="muted">15 concepts hand-curated with the full five-lens treatment. Click to drill in.</p>
+      <div id="featuredGrid" class="grid grid-cards"></div>
+    </section>
+
+    <section class="section">
+      <h2>How to use this dashboard</h2>
+      <div class="grid grid-3">
+        <div class="howto"><h3>1 · Skim the catalog</h3><p>Open <a href="#/catalog">Catalog</a> to filter every doc by category, language, status, or ADR number. Each row links back to the source markdown on GitHub.</p></div>
+        <div class="howto"><h3>2 · Deep-dive a concept</h3><p>Click any featured card. You'll get the story (Hook → Conflict → Turn → Payoff), the architect's framing, the failure modes, and the interview ladder.</p></div>
+        <div class="howto"><h3>3 · Drill in interview mode</h3><p><a href="#/interview">Interview Mode</a> hides answers by default, branches into follow-ups, tracks what you've mastered locally, and runs a timer for live practice.</p></div>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-catalog">
+    <section class="section">
+      <h2>Full doc catalog</h2>
+      <p class="muted">Every ADR, feature spec, and design doc. Use the search bar above or click a chip to filter.</p>
+      <div id="catalogTable"></div>
+    </section>
+  </template>
+
+  <template id="tpl-concept">
+    <article class="concept">
+      <a class="back" href="#/catalog">← Back to catalog</a>
+      <header class="concept-head"></header>
+      <nav class="concept-tabs">
+        <button data-tab="story" class="active">Story</button>
+        <button data-tab="architect">Architect's view</button>
+        <button data-tab="failures">Failure modes</button>
+        <button data-tab="interview">Interview ladder</button>
+        <button data-tab="source">Source markdown</button>
+      </nav>
+      <div class="concept-body"></div>
+    </article>
+  </template>
+
+  <template id="tpl-interview">
+    <section class="section">
+      <h2>Interview Mode</h2>
+      <p class="muted">Answers are hidden by default. Click <em>Reveal model answer</em> to check yourself, then dive deeper into follow-ups. Progress is saved in your browser only.</p>
+      <div class="interview-controls">
+        <select id="interviewConcept"></select>
+        <select id="interviewDifficulty">
+          <option value="">All difficulties</option>
+          <option value="warmup">Warmup</option>
+          <option value="core">Core</option>
+          <option value="design">Design / critique</option>
+          <option value="prod">Operate in prod</option>
+        </select>
+        <button id="startTimer" class="ghost">Start 10-min timer</button>
+        <span id="timerDisplay" class="timer"></span>
+        <button id="resetProgress" class="ghost danger">Reset progress</button>
+      </div>
+      <div id="interviewBody"></div>
+    </section>
+  </template>
+
+  <template id="tpl-about">
+    <section class="section about">
+      <h2>About this dashboard</h2>
+      <p>
+        This is a <strong>static GitHub Pages site</strong>. No server, no build step. It is generated from the
+        <code>docs/</code> tree of the Microsoft Agent Framework repository and authored under five lenses:
+      </p>
+      <ul>
+        <li><strong>Architect</strong> — Problem → Forces → Decision → Trade-offs → Reversibility for every concept.</li>
+        <li><strong>Storyteller</strong> — A four-beat narrative (Hook, Conflict, Turn, Payoff) for each deep dive.</li>
+        <li><strong>Hiring Manager</strong> — Multi-level interview ladders, never flat flashcards. Every leaf has a model answer and at least one design / critique prompt.</li>
+        <li><strong>Staff Engineer</strong> — A failure-mode appendix per concept: what breaks at scale, what the ADR explicitly did not solve, what observability you'd need at 3 AM.</li>
+        <li><strong>UX Lead</strong> — Command-K search, interview mode with timer and progress persistence, dark/light theme, printable cheatsheets.</li>
+      </ul>
+      <h3>Deployment</h3>
+      <p>See <code>site/README.md</code> for one-command GitHub Pages deployment.</p>
+      <h3>Source</h3>
+      <p>Every concept card links back to the canonical markdown on <a href="https://github.com/microsoft/agent-framework/tree/main/docs" target="_blank" rel="noopener">github.com/microsoft/agent-framework</a>.</p>
+    </section>
+  </template>
+
+  <script src="js/data.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>
