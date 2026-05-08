@@ -278,16 +278,31 @@
     if (tab === "architect") return renderArchitect(row, body);
     if (tab === "failures") return renderFailures(row, body);
     if (tab === "interview") return renderLadder(row, body);
+    if (tab === "connections") return renderConnections(row, body);
     if (tab === "source") return renderSource(row, body);
+  }
+
+  // Markdown helpers — used in questions, answers, story beats, etc.
+  // marked is loaded via CDN with `defer`; on first call after page load it
+  // should be ready, but we fall back to escaping if it's not.
+  function md(s) {
+    if (!s) return "";
+    if (window.marked && marked.parse) return marked.parse(String(s));
+    return `<p>${escapeHTML(String(s))}</p>`;
+  }
+  function mdInline(s) {
+    if (!s) return "";
+    if (window.marked && marked.parseInline) return marked.parseInline(String(s));
+    return escapeHTML(String(s));
   }
 
   function renderStory(row, body) {
     const s = row.story;
     body.innerHTML = `<div class="beats">
-      <div class="beat"><h4>Hook</h4><p>${s.hook}</p></div>
-      <div class="beat"><h4>Conflict</h4><p>${s.conflict}</p></div>
-      <div class="beat"><h4>Turn</h4><p>${s.turn}</p></div>
-      <div class="beat"><h4>Payoff</h4><p>${s.payoff}</p></div>
+      <div class="beat"><h4>Hook</h4>${md(s.hook)}</div>
+      <div class="beat"><h4>Conflict</h4>${md(s.conflict)}</div>
+      <div class="beat"><h4>Turn</h4>${md(s.turn)}</div>
+      <div class="beat"><h4>Payoff</h4>${md(s.payoff)}</div>
     </div>
     <p class="muted" style="margin-top:18px;">Storyteller's note — every featured concept here follows the same four-beat structure, so a reader can compare designs by skimming the same shape across pages.</p>`;
   }
@@ -295,23 +310,62 @@
   function renderArchitect(row, body) {
     const a = row.architect;
     body.innerHTML = `
-      <div class="kv"><h4>Problem</h4><p>${a.problem}</p></div>
-      <div class="kv"><h4>Forces</h4><ul>${a.forces.map(f => `<li>${f}</li>`).join("")}</ul></div>
-      <div class="kv"><h4>Decision</h4><p>${a.decision}</p></div>
+      <div class="kv"><h4>Problem</h4>${md(a.problem)}</div>
+      <div class="kv"><h4>Forces</h4><ul>${a.forces.map(f => `<li>${mdInline(f)}</li>`).join("")}</ul></div>
+      <div class="kv"><h4>Decision</h4>${md(a.decision)}</div>
       <div class="tradeoff-grid">
-        <div class="kv good"><h4>Good</h4><ul>${a.tradeoffs.good.map(g => `<li>${g}</li>`).join("")}</ul></div>
-        <div class="kv bad"><h4>Bad / costs</h4><ul>${a.tradeoffs.bad.map(g => `<li>${g}</li>`).join("")}</ul></div>
+        <div class="kv good"><h4>Good</h4><ul>${a.tradeoffs.good.map(g => `<li>${mdInline(g)}</li>`).join("")}</ul></div>
+        <div class="kv bad"><h4>Bad / costs</h4><ul>${a.tradeoffs.bad.map(g => `<li>${mdInline(g)}</li>`).join("")}</ul></div>
       </div>
-      <div class="kv"><h4>Reversibility</h4><p>${a.reversibility}</p></div>
+      <div class="kv"><h4>Reversibility</h4>${md(a.reversibility)}</div>
     `;
   }
 
   function renderFailures(row, body) {
     body.innerHTML = `<div class="failures kv">
       <h4>What breaks at scale or in prod</h4>
-      <ul>${row.failureModes.map(f => `<li>${marked.parseInline ? marked.parseInline(f) : f}</li>`).join("")}</ul>
+      <ul>${row.failureModes.map(f => `<li>${mdInline(f)}</li>`).join("")}</ul>
       <p class="muted" style="margin-top:14px;">Staff-engineer's note — every concept has at least three failure modes worth surfacing in design review. If you can't list them for a feature you're shipping, you don't fully own the design.</p>
     </div>`;
+  }
+
+  function renderConnections(row, body) {
+    const related = row.related || [];
+    const further = row.furtherReading || [];
+    const compare = row.compareWith || [];
+    const directions = row.thinkingDirections || [];
+    const rows = [];
+
+    if (related.length) {
+      const items = related.map(r => {
+        const target = window.MAF_CATALOG.find(c => c.id === r.id);
+        const title = target ? target.title : r.id;
+        const featuredBadge = target && target.featured ? "" : ` <span class="dim" style="font-size:11px;">(catalog only)</span>`;
+        return `<li><a href="#/concept/${r.id}"><strong>${title}</strong></a>${featuredBadge} — ${mdInline(r.why)}</li>`;
+      }).join("");
+      rows.push(`<div class="kv"><h4>Related concepts in MAF</h4><ul>${items}</ul></div>`);
+    }
+
+    if (compare.length) {
+      const items = compare.map(c => `<li><strong>${escapeHTML(c.framework)}:</strong> ${mdInline(c.contrast)}</li>`).join("");
+      rows.push(`<div class="kv"><h4>How other frameworks handle this</h4><ul>${items}</ul></div>`);
+    }
+
+    if (further.length) {
+      const items = further.map(f => `<li><a href="${escapeAttr(f.url)}" target="_blank" rel="noopener">${escapeHTML(f.label)} ↗</a>${f.note ? ` — <span class="muted">${mdInline(f.note)}</span>` : ""}</li>`).join("");
+      rows.push(`<div class="kv"><h4>Further reading (external)</h4><ul>${items}</ul></div>`);
+    }
+
+    if (directions.length) {
+      const items = directions.map(d => `<li>${mdInline(d)}</li>`).join("");
+      rows.push(`<div class="kv" style="border-left-color:var(--accent-2);"><h4 style="color:var(--accent-2);">Thinking directions — attack the design from these angles</h4><ul>${items}</ul><p class="muted" style="margin-top:8px;">Sit with each prompt for two or three minutes before answering. The goal is not to recall — it's to generate alternatives, then defend or reject the original choice.</p></div>`);
+    }
+
+    if (!rows.length) {
+      body.innerHTML = `<p class="muted">No connection metadata yet for this concept. The featured concepts (see Dashboard) include cross-links, comparisons, and thinking prompts.</p>`;
+      return;
+    }
+    body.innerHTML = rows.join("");
   }
 
   function renderLadder(row, body) {
@@ -328,9 +382,9 @@
       ? `<div class="followups">${q.followUps.map(f => questionHTML(f, level + 1, conceptId)).join("")}</div>`
       : "";
     return `<div class="q-card ${mastered}" data-level="${level}" data-qid="${qid}">
-      <div class="q-meta">${diffTag}${typeTag}${level > 0 ? `<span class="diff-tag" style="background:rgba(255,255,255,.05); color:var(--fg-muted);">follow-up · L${level}</span>` : ""}</div>
-      <div class="q-text">${q.q}</div>
-      <div class="answer" style="display:none;">${q.modelAnswer || "<em class='muted'>(answer to be authored — submit a PR!)</em>"}</div>
+      <div class="q-meta">${diffTag}${typeTag}${level > 0 ? `<span class="diff-tag" style="background:rgba(0,0,0,.04); color:var(--fg-muted); border:1px solid var(--border-soft);">follow-up · L${level}</span>` : ""}</div>
+      <div class="q-text">${mdInline(q.q)}</div>
+      <div class="answer" style="display:none;">${q.modelAnswer ? md(q.modelAnswer) : "<em class='muted'>(answer to be authored — submit a PR!)</em>"}</div>
       <div class="q-actions">
         <button class="ghost btn-reveal">Reveal model answer</button>
         <button class="ghost btn-master">${isMastered(qid) ? "Unmark mastered" : "Mark mastered"}</button>
@@ -338,6 +392,8 @@
       ${fu}
     </div>`;
   }
+
+  function escapeAttr(s) { return String(s).replace(/"/g, "&quot;"); }
 
   function bindQuestionActions(root) {
     root.querySelectorAll(".q-card").forEach(card => {
