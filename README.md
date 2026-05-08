@@ -1,3 +1,41 @@
+> ## 📚 Study & Interview Dashboard (this fork)
+>
+> A static GitHub Pages site generated from the `docs/` tree of this repo, with story-driven deep dives, multi-level interview ladders, cross-references, and a focused study-mode UI.
+>
+> **🔖 Live: https://srikanthvelpuri.github.io/agent-framework/**
+>
+> **Quick links**
+>
+> | Where | URL |
+> | --- | --- |
+> | Dashboard (start here) | <https://srikanthvelpuri.github.io/agent-framework/#/> |
+> | Catalog (all 35 docs, filterable) | <https://srikanthvelpuri.github.io/agent-framework/#/catalog> |
+> | Interview Mode (timer + mastery tracking) | <https://srikanthvelpuri.github.io/agent-framework/#/interview> |
+> | About | <https://srikanthvelpuri.github.io/agent-framework/#/about> |
+>
+> **Top featured concept deep dives**
+>
+> - [Agent Run & Response Model](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0001-agent-run-response) — Primary / Secondary / Long-running output
+> - [Agent Tools](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0002-agent-tools) — descriptors, executors, MCP, native
+> - [OpenTelemetry Instrumentation](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0003-otel) — span shape, cost & latency attribution
+> - [User Approval](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0006-userapproval) — pause, resume, idempotent replay
+> - [Filtering Middleware](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0007-filtering-mw) — onion pipeline & ordering
+> - [Long-Running Operations](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0009-long-running) — background runs, status, cancel
+> - [Structured Output](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0016-structured-output) — typed results across providers
+> - [AgentThread Serialization](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0018-thread-serialization) — durable on-disk format
+> - [Context Compaction](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0019-context-compaction) — long sessions
+> - [Agent Skills](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0021-skills) — multi-source skill system
+> - [CodeAct Integration](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0024-codeact) — code as the action language
+> - [Prompt Injection Defense](https://srikanthvelpuri.github.io/agent-framework/#/concept/adr-0024-prompt-injection) — layered trust tags & approvals
+> - [Durable Agents](https://srikanthvelpuri.github.io/agent-framework/#/concept/feature-durable-agents) — sessions that survive crashes & multi-day waits
+> - [Vector Stores & Embeddings](https://srikanthvelpuri.github.io/agent-framework/#/concept/feature-vector-stores) — portable RAG abstraction
+>
+> **Tips:** Use `Cmd-K` (or `/`) inside the dashboard for global search. Toggle dark/light with `◐` (top right). Mastered questions are saved in your browser via `localStorage`. Source for the dashboard lives in [`dashboard/`](./dashboard/).
+>
+> *(This block is fork-specific. Upstream Microsoft Agent Framework README continues below.)*
+
+---
+
 ![Microsoft Agent Framework](docs/assets/readme-banner.png)
 
 # Welcome to Microsoft Agent Framework!
