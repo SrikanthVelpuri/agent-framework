@@ -64,7 +64,11 @@
         c.addEventListener("click", () => {
           activeFilters[it.kind].has(it.id) ? activeFilters[it.kind].delete(it.id) : activeFilters[it.kind].add(it.id);
           renderChips();
-          rerenderCurrentRoute();
+          // Filters only have a visible effect on /catalog, so jump there
+          // from any other view when the user clicks a chip.
+          const route = parseRoute();
+          if (route.name !== "catalog") { navigate("#/catalog"); }
+          else { rerenderCurrentRoute(); }
         });
         chips.appendChild(c);
       });
@@ -75,7 +79,14 @@
   // ──────────────────────────────────────────────────────────
   //  Search
   // ──────────────────────────────────────────────────────────
-  search.addEventListener("input", () => rerenderCurrentRoute());
+  search.addEventListener("input", () => {
+    const route = parseRoute();
+    if (search.value.trim() && route.name !== "catalog" && route.name !== "interview") {
+      navigate("#/catalog");
+    } else {
+      rerenderCurrentRoute();
+    }
+  });
   document.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); search.focus(); }
     if (e.key === "/" && document.activeElement !== search) { e.preventDefault(); search.focus(); }
