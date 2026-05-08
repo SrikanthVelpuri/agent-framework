@@ -98,6 +98,7 @@
       const hay = [row.title, row.summary, row.adr || "", row.id, ...(row.languages || []), row.category]
         .concat(JSON.stringify(row.story || {}))
         .concat(JSON.stringify(row.interview || []))
+        .concat(JSON.stringify(row.interviewStory || {}))
         .join(" ").toLowerCase();
       if (!hay.includes(q)) return false;
     }
@@ -275,6 +276,11 @@
       return;
     }
     if (tab === "story") return renderStory(row, body);
+    if (tab === "interview-story" && !row.interviewStory) {
+      body.innerHTML = `<p class="muted">Interview-story rehearsal is authored only for the featured concepts (the ones with five-lens treatment). Use the <em>Story</em> tab for the four-beat narrative on this concept.</p>`;
+      return;
+    }
+    if (tab === "interview-story") return renderInterviewStory(row, body);
     if (tab === "architect") return renderArchitect(row, body);
     if (tab === "failures") return renderFailures(row, body);
     if (tab === "interview") return renderLadder(row, body);
@@ -366,6 +372,34 @@
       return;
     }
     body.innerHTML = rows.join("");
+  }
+
+  function renderInterviewStory(row, body) {
+    const s = row.interviewStory;
+    const storyboard = (s.storyboard || []).map(p => `<div class="story-para">${md(p)}</div>`).join("");
+    const star = `
+      <div class="star-grid">
+        <div class="kv star-s"><h4>Situation</h4>${md(s.star.situation)}</div>
+        <div class="kv star-t"><h4>Task</h4>${md(s.star.task)}</div>
+        <div class="kv star-a"><h4>Action</h4>${md(s.star.action)}</div>
+        <div class="kv star-r"><h4>Result</h4>${md(s.star.result)}</div>
+      </div>`;
+    const lps = (s.leadership || []).map(l =>
+      `<li class="lp-item"><span class="lp-name">${escapeHTML(l.lp)}</span><span class="lp-note">${mdInline(l.note)}</span></li>`
+    ).join("");
+    const pitch = `<div class="elevator-pitch">
+      <div class="elevator-eyebrow">90-second elevator pitch · say it aloud</div>
+      ${md(s.elevatorPitch || "")}
+    </div>`;
+    body.innerHTML = `
+      <p class="muted rehearsal-banner">Rehearsal artifact — first-person framing for behavioral-interview practice. I did <strong>not</strong> author the Microsoft Agent Framework; these are <em>"if I had led this design"</em> stories anchored in the public ADRs.</p>
+      <section class="storyboard">${storyboard}</section>
+      <h3 class="is-section-head">STAR breakdown — the 3-minute behavioral answer</h3>
+      ${star}
+      <h3 class="is-section-head">Leadership lens — Amazon LPs in play</h3>
+      <ul class="lp-list">${lps}</ul>
+      ${pitch}
+    `;
   }
 
   function renderLadder(row, body) {
